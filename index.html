@@ -13,6 +13,8 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- Supabase JS -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- SheetJS para Importar Archivos de Excel -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
   <style>
     :root {
@@ -24,6 +26,8 @@
       --accent-blue: #0284c7;
       --accent-blue-light: #e0f2fe;
       --table-header-bg: #38bdf8;
+      --danger-color: #ef4444;
+      --success-color: #10b981;
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Roboto', sans-serif; }
@@ -185,33 +189,62 @@
     .section-page { display: none; }
     .section-page.active { display: block; }
 
-    /* BOTÓN DE CAPTURA SUPABASE */
-    .btn-capture-float {
+    /* BOTONES ACCION Y FLOTANTES */
+    .action-buttons {
       position: fixed;
       bottom: 25px;
       right: 25px;
+      display: flex;
+      gap: 12px;
+      z-index: 100;
+    }
+
+    .btn-float {
       background: var(--accent-blue);
       color: white;
       border: none;
-      padding: 14px 24px;
+      padding: 14px 22px;
       border-radius: 30px;
       font-weight: 700;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       cursor: pointer;
       box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
     }
 
-    /* MODAL BLANCO */
+    .btn-float.excel { background: var(--success-color); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); }
+
+    .btn-action-table {
+      border: none;
+      padding: 5px 10px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      font-weight: bold;
+      color: white;
+      margin-right: 4px;
+    }
+    .btn-edit { background-color: var(--accent-blue); }
+    .btn-delete { background-color: var(--danger-color); }
+
+    /* MODAL Y FORMULARIO */
     .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 200; justify-content: center; align-items: center; }
     .modal.active { display: flex; }
     .modal-content { background: white; border-radius: 8px; padding: 30px; width: 450px; border: 1px solid var(--border-color); }
     .form-group { margin-bottom: 15px; }
     .form-group label { display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 5px; color: var(--text-dark); }
     .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; }
-    .btn-submit { width: 100%; padding: 12px; background: var(--accent-blue); color: white; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; }
+    
+    .modal-footer {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .btn-submit { flex: 1; padding: 12px; background: var(--accent-blue); color: white; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; }
+    .btn-cancel { flex: 1; padding: 12px; background: #94a3b8; color: white; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; }
   </style>
 </head>
 <body>
@@ -273,7 +306,7 @@
         </div>
       </div>
 
-      <!-- 1. PESTAÑA: GENERAL (CONSOLIDA TODA LA INFORMACIÓN POR SUCURSAL, MES E INDICADOR) -->
+      <!-- 1. PESTAÑA: GENERAL (CONSOLIDA TODA LA INFORMACIÓN) -->
       <div id="page-general" class="section-page active">
         <div class="dashboard-header">
           <h1 class="dashboard-title">Consolidado General de Indicadores</h1>
@@ -292,9 +325,7 @@
                 <th>ESTATUS</th>
               </tr>
             </thead>
-            <tbody id="tabla-general-consolidada">
-              <!-- Carga Dinámica vía JS -->
-            </tbody>
+            <tbody id="tabla-general-consolidada"></tbody>
           </table>
         </div>
 
@@ -304,76 +335,52 @@
         </div>
       </div>
 
-      <!-- 2. PESTAÑA: ATENCIÓN Y SERVICIO -->
+      <!-- PESTAÑAS SECUNDARIAS -->
       <div id="page-atencion" class="section-page">
         <div class="dashboard-header"><h1 class="dashboard-title">Atención y Servicio al Cliente</h1></div>
-        <div class="table-responsive">
-          <table class="table-custom">
-            <thead><tr><th>INDICADOR</th><th>01. ENERO</th><th>02. FEBRERO</th><th>03. MARZO</th><th>04. ABRIL</th><th>05. MAYO</th></tr></thead>
-            <tbody>
-              <tr><td>Protocolo</td><td>25.51 %</td><td>25.91 %</td><td>29.09 %</td><td>28.13 %</td><td>32.96 %</td></tr>
-              <tr><td>Control</td><td>14.42 %</td><td>14.67 %</td><td>14.65 %</td><td>14.86 %</td><td>14.71 %</td></tr>
-              <tr><td>Imagen</td><td>12.18 %</td><td>12.39 %</td><td>12.59 %</td><td>12.90 %</td><td>13.03 %</td></tr>
-            </tbody>
-          </table>
-        </div>
         <div class="chart-container-large"><canvas id="chartAtencionAmplia"></canvas></div>
       </div>
 
-      <!-- 3. PESTAÑA: OPERACIÓN DE SUCURSAL -->
       <div id="page-operacion" class="section-page">
         <div class="dashboard-header"><h1 class="dashboard-title">Operación de Sucursales</h1></div>
-        <div class="table-responsive">
-          <table class="table-custom">
-            <thead><tr><th>INDICADOR</th><th>01. ENERO</th><th>02. FEBRERO</th><th>03. MARZO</th><th>04. ABRIL</th><th>05. MAYO</th></tr></thead>
-            <tbody>
-              <tr><td>CONTROL</td><td>21.90 %</td><td>23.08 %</td><td>21.90 %</td><td>23.14 %</td><td>85.06 %</td></tr>
-              <tr><td>FARMACIA</td><td>15.56 %</td><td>14.58 %</td><td>14.72 %</td><td>15.64 %</td><td>72.17 %</td></tr>
-              <tr><td>CÁMARA FRÍA</td><td>16.00 %</td><td>16.73 %</td><td>16.80 %</td><td>16.26 %</td><td>65.80 %</td></tr>
-            </tbody>
-          </table>
-        </div>
         <div class="chart-container-large"><canvas id="chartOperacionAmplia"></canvas></div>
       </div>
 
-      <!-- 4. PESTAÑA: VENCIDOS -->
       <div id="page-vencidos" class="section-page">
-        <div class="dashboard-header">
-          <h1 class="dashboard-title">Control de Vencidos</h1>
-          <div style="text-align: right;"><span style="font-size: 0.8rem; color: var(--text-muted);">TOTAL:</span> <b style="font-size: 1.5rem; color: var(--accent-blue);">$881,188.91</b></div>
-        </div>
+        <div class="dashboard-header"><h1 class="dashboard-title">Control de Vencidos</h1></div>
         <div class="chart-container-large"><canvas id="chartVencidosAmplia"></canvas></div>
       </div>
 
-      <!-- 5. PESTAÑA: MERMA -->
       <div id="page-merma" class="section-page">
-        <div class="dashboard-header">
-          <h1 class="dashboard-title">Análisis de Merma</h1>
-          <div style="text-align: right;"><span style="font-size: 0.8rem; color: var(--text-muted);">TOTAL:</span> <b style="font-size: 1.5rem; color: var(--accent-blue);">$204,955.22</b></div>
-        </div>
+        <div class="dashboard-header"><h1 class="dashboard-title">Análisis de Merma</h1></div>
         <div class="chart-container-large"><canvas id="chartMermaAmplia"></canvas></div>
       </div>
 
-      <!-- 6. PESTAÑA: CCTV Y ALARMAS -->
       <div id="page-cctv" class="section-page">
         <div class="dashboard-header"><h1 class="dashboard-title">CCTV y Alarmas</h1></div>
         <div class="chart-container-large"><canvas id="chartCCTVAmplia"></canvas></div>
       </div>
 
-      <!-- 7. PESTAÑA: INVENTARIOS -->
       <div id="page-inventarios" class="section-page">
         <div class="dashboard-header"><h1 class="dashboard-title">Inventarios 2026</h1></div>
-        <p style="color: var(--text-muted);">Registro de auditorías e inventarios por sucursal.</p>
       </div>
 
-      <!-- REGISTROS GUARDADOS EN SUPABASE -->
+      <!-- REGISTROS GUARDADOS EN SUPABASE CON EDICIÓN Y BORRADO -->
       <div style="margin-top: 40px; border-top: 2px solid var(--border-color); padding-top: 20px;">
         <h3 style="color: var(--text-dark); margin-bottom: 12px; font-size: 1rem;">Histórico de Capturas (Sincronizado con Supabase)</h3>
         <div class="table-responsive">
           <table class="table-custom">
-            <thead><tr><th>Fecha Registro</th><th>Módulo / Indicador</th><th>Sucursal</th><th>Valor Capturado</th></tr></thead>
+            <thead>
+              <tr>
+                <th>Fecha Registro</th>
+                <th>Módulo / Indicador</th>
+                <th>Sucursal</th>
+                <th>Valor Capturado</th>
+                <th style="width: 140px;">Acciones</th>
+              </tr>
+            </thead>
             <tbody id="tabla-supabase-historico">
-              <tr><td colspan="4">Cargando registros...</td></tr>
+              <tr><td colspan="5">Cargando registros...</td></tr>
             </tbody>
           </table>
         </div>
@@ -382,14 +389,21 @@
     </div>
   </main>
 
-  <!-- BOTÓN FLOTANTE DE CAPTURA -->
-  <button class="btn-capture-float" onclick="abrirModal()"><i class="fa-solid fa-plus"></i> CAPTURAR REGISTRO</button>
+  <!-- BOTONES FLOTANTES -->
+  <div class="action-buttons">
+    <button class="btn-float excel" onclick="document.getElementById('input-excel-file').click()"><i class="fa-solid fa-file-excel"></i> IMPORTAR EXCEL</button>
+    <button class="btn-float" onclick="abrirModal()"><i class="fa-solid fa-plus"></i> CAPTURAR REGISTRO</button>
+  </div>
 
-  <!-- MODAL DE CAPTURA -->
+  <!-- INPUT OCULTO PARA SUBIR EXCEL -->
+  <input type="file" id="input-excel-file" accept=".xlsx, .xls" style="display: none;" onchange="procesarExcel(event)">
+
+  <!-- MODAL DE CREACIÓN Y EDICIÓN -->
   <div class="modal" id="modal-captura">
     <div class="modal-content">
-      <h3 style="margin-bottom: 20px; color: var(--accent-blue);">Nuevo Registro de Indicador</h3>
+      <h3 style="margin-bottom: 20px; color: var(--accent-blue);" id="modal-titulo">Nuevo Registro de Indicador</h3>
       <form onsubmit="guardarEnSupabase(event)">
+        <input type="hidden" id="edit-id" value="">
         <div class="form-group">
           <label>Módulo / Indicador</label>
           <select id="input-modulo">
@@ -408,29 +422,31 @@
           <label>Valor / Resultado</label>
           <input type="text" id="input-valor" placeholder="Ej. 95.5% o $14,200" required>
         </div>
-        <button type="submit" class="btn-submit">Guardar en Supabase</button>
+        <div class="modal-footer">
+          <button type="button" class="btn-cancel" onclick="cerrarModal()">Cancelar</button>
+          <button type="submit" class="btn-submit" id="btn-guardar-modal">Guardar</button>
+        </div>
       </form>
     </div>
   </div>
 
   <script>
-    // BASE DE DATOS MATRIZ PARA LA HOJA GENERAL (SUCURSAL, MES, INDICADOR)
     const baseDatosConsolidada = [
       { sucursal: 'CUAUHTEMOC', mes: '01. ENERO', indicador: 'Operación de Sucursales', valor: '93.25 %', estatus: 'Excelente' },
       { sucursal: 'CUAUHTEMOC', mes: '02. FEBRERO', indicador: 'Atención y Servicio', valor: '73.25 %', estatus: 'Regular' },
       { sucursal: 'JUAN ALDAMA', mes: '01. ENERO', indicador: 'Operación de Sucursales', valor: '93.25 %', estatus: 'Excelente' },
       { sucursal: 'JALPA', mes: '03. MARZO', indicador: 'Vencidos', valor: '$55,244.43', estatus: 'Crítico' },
       { sucursal: 'LA PANADERA', mes: '04. ABRIL', indicador: 'Merma', valor: '$17,042.02', estatus: 'Atención' },
-      { sucursal: 'OCAMPO', mes: '05. MAYO', indicador: 'CCTV y Alarmas', valor: '98.50 %', estatus: 'Excelente' },
-      { sucursal: 'CUAUHTEMOC', mes: '03. MARZO', indicador: 'Vencidos', valor: '$12,400.00', estatus: 'Aceptable' }
+      { sucursal: 'OCAMPO', mes: '05. MAYO', indicador: 'CCTV y Alarmas', valor: '98.50 %', estatus: 'Excelente' }
     ];
 
-    // CONFIGURACIÓN SUPABASE
+    // SUPABASE CLIENT
     const SUPABASE_URL = "https://oussvhvomwrndtufzfih.supabase.co";
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im91c3N2aHZvbXdybmR0dWZ6ZmloIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY3MzAwMjcsImV4cCI6MjEwMjMwNjAyN30.2zF0BxBxuz7xr_lSVlcB6eGAZqn6_e_0cL7zBJqCaqc";
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // SWAP PESTAÑAS
+    let datosHistoricosGlobal = [];
+
     function switchTab(pageId, element) {
       document.querySelectorAll('.section-page').forEach(p => p.classList.remove('active'));
       document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
@@ -438,10 +454,27 @@
       if(element) element.classList.add('active');
     }
 
-    function abrirModal() { document.getElementById('modal-captura').classList.add('active'); }
-    function cerrarModal() { document.getElementById('modal-captura').classList.remove('active'); }
+    /* MANEJO DEL MODAL (CANCELAR / EDICION) */
+    function abrirModal(editItem = null) {
+      if (editItem) {
+        document.getElementById('modal-titulo').innerText = 'Editar Registro';
+        document.getElementById('edit-id').value = editItem.id;
+        document.getElementById('input-modulo').value = editItem.modulo;
+        document.getElementById('input-sucursal').value = editItem.sucursal;
+        document.getElementById('input-valor').value = editItem.valor;
+      } else {
+        document.getElementById('modal-titulo').innerText = 'Nuevo Registro de Indicador';
+        document.getElementById('edit-id').value = '';
+        document.getElementById('input-sucursal').value = '';
+        document.getElementById('input-valor').value = '';
+      }
+      document.getElementById('modal-captura').classList.add('active');
+    }
 
-    // FILTRO DINÁMICO HOJA GENERAL
+    function cerrarModal() {
+      document.getElementById('modal-captura').classList.remove('active');
+    }
+
     function aplicarFiltros() {
       const fMes = document.getElementById('filter-mes').value;
       const fSuc = document.getElementById('filter-sucursal').value;
@@ -460,7 +493,7 @@
     function renderTablaConsolidada(datos) {
       const tbody = document.getElementById('tabla-general-consolidada');
       if (datos.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No se encontraron registros para esta combinación de filtros.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No hay coincidencias.</td></tr>';
         return;
       }
       tbody.innerHTML = datos.map(row => `
@@ -474,35 +507,104 @@
       `).join('');
     }
 
-    // SUPABASE INTEGRACIÓN
+    /* CRUD SUPABASE: GUARDAR, EDITAR Y ELIMINAR */
     async function guardarEnSupabase(e) {
       e.preventDefault();
+      const id = document.getElementById('edit-id').value;
       const modulo = document.getElementById('input-modulo').value;
       const sucursal = document.getElementById('input-sucursal').value;
       const valor = document.getElementById('input-valor').value;
 
-      const { data, error } = await _supabase.from('registros').insert([{ modulo, sucursal, valor }]);
-      if (error) { alert("Error al guardar: " + error.message); } 
-      else { alert("¡Guardado en Supabase con éxito!"); cerrarModal(); cargarDatosSupabase(); }
+      if (id) {
+        // Editar
+        const { error } = await _supabase.from('registros').update({ modulo, sucursal, valor }).eq('id', id);
+        if (error) alert("Error actualizando: " + error.message);
+      } else {
+        // Crear
+        const { error } = await _supabase.from('registros').insert([{ modulo, sucursal, valor }]);
+        if (error) alert("Error guardando: " + error.message);
+      }
+
+      cerrarModal();
+      cargarDatosSupabase();
+    }
+
+    async function eliminarRegistro(id) {
+      if (confirm('¿Estás seguro de que deseas eliminar este registro?')) {
+        const { error } = await _supabase.from('registros').delete().eq('id', id);
+        if (error) alert("Error al eliminar: " + error.message);
+        else cargarDatosSupabase();
+      }
     }
 
     async function cargarDatosSupabase() {
       const { data, error } = await _supabase.from('registros').select('*').order('created_at', { ascending: false });
       const tbody = document.getElementById('tabla-supabase-historico');
-      if (error) { tbody.innerHTML = `<tr><td colspan="4" style="color:red;">Aviso: Debes crear la tabla "registros" en el SQL Editor de Supabase.</td></tr>`; return; }
-      if (!data || data.length === 0) { tbody.innerHTML = '<tr><td colspan="4">No hay capturas registradas aún.</td></tr>'; return; }
+      
+      if (error) { tbody.innerHTML = `<tr><td colspan="5" style="color:red;">Error de conexión.</td></tr>`; return; }
+      if (!data || data.length === 0) { tbody.innerHTML = '<tr><td colspan="5">No hay capturas registradas aún.</td></tr>'; return; }
 
-      tbody.innerHTML = data.map(r => `
+      datosHistoricosGlobal = data;
+      tbody.innerHTML = data.map((r, index) => `
         <tr>
           <td>${new Date(r.created_at).toLocaleDateString()}</td>
           <td>${r.modulo}</td>
           <td><b>${r.sucursal}</b></td>
           <td><b>${r.valor}</b></td>
+          <td>
+            <button class="btn-action-table btn-edit" onclick="prepararEdicion(${index})"><i class="fa-solid fa-pen"></i></button>
+            <button class="btn-action-table btn-delete" onclick="eliminarRegistro(${r.id})"><i class="fa-solid fa-trash"></i></button>
+          </td>
         </tr>
       `).join('');
     }
 
-    // INICIALIZACIÓN DE GRÁFICAS AMPLIAS Y GRANDES
+    function prepararEdicion(index) {
+      const item = datosHistoricosGlobal[index];
+      abrirModal(item);
+    }
+
+    /* CARGA MASIVA DESDE EXCEL */
+    function procesarExcel(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = async function(evt) {
+        const data = new Uint8Array(evt.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const sheetName = workbook.SheetNames[0];
+        const sheet = workbook.Sheets[sheetName];
+        
+        // Convertir Excel a JSON
+        const rows = XLSX.utils.sheet_to_json(sheet);
+        
+        if (rows.length === 0) {
+          alert("El archivo Excel está vacío.");
+          return;
+        }
+
+        // Mapear los campos esperados del Excel
+        // Se espera que en Excel las columnas sean: Modulo, Sucursal, Valor
+        const dataToInsert = rows.map(r => ({
+          modulo: r.Modulo || r.modulo || r.INDICADOR || 'Atención y Servicio',
+          sucursal: r.Sucursal || r.sucursal || r.SUCURSAL || 'General',
+          valor: String(r.Valor || r.valor || r.VALOR || '0')
+        }));
+
+        const { error } = await _supabase.from('registros').insert(dataToInsert);
+
+        if (error) {
+          alert("Error importando Excel: " + error.message);
+        } else {
+          alert(`¡Éxito! Se cargaron ${dataToInsert.length} filas desde el Excel.`);
+          cargarDatosSupabase();
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    // CARGA Y CONFIGURACIÓN DE GRÁFICAS AMPLIAS
     window.onload = function() {
       aplicarFiltros();
       cargarDatosSupabase();
@@ -514,7 +616,6 @@
         scales: { y: { grid: { color: '#e2e8f0' } }, x: { grid: { display: false } } }
       };
 
-      // 1. Gráfica General Amplia
       new Chart(document.getElementById('chartGeneralConsolidado'), {
         type: 'line',
         data: {
@@ -527,7 +628,6 @@
         options: optionsLarge
       });
 
-      // 2. Gráfica Atención Amplia
       new Chart(document.getElementById('chartAtencionAmplia'), {
         type: 'bar',
         data: {
@@ -537,7 +637,6 @@
         options: optionsLarge
       });
 
-      // 3. Gráfica Operación Amplia
       new Chart(document.getElementById('chartOperacionAmplia'), {
         type: 'bar',
         data: {
@@ -547,7 +646,6 @@
         options: optionsLarge
       });
 
-      // 4. Gráfica Vencidos Amplia
       new Chart(document.getElementById('chartVencidosAmplia'), {
         type: 'bar',
         data: {
@@ -557,7 +655,6 @@
         options: optionsLarge
       });
 
-      // 5. Gráfica Merma Amplia
       new Chart(document.getElementById('chartMermaAmplia'), {
         type: 'bar',
         data: {
@@ -567,7 +664,6 @@
         options: optionsLarge
       });
 
-      // 6. Gráfica CCTV Amplia
       new Chart(document.getElementById('chartCCTVAmplia'), {
         type: 'bar',
         data: {
