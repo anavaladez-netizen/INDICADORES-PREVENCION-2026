@@ -3,502 +3,581 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard - Prevención de Pérdidas</title>
+  <title>Dashboard Prevención de Pérdidas 2026</title>
   
   <!-- Font Awesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <!-- Chart.js CDN -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- Supabase JS CDN -->
+  <!-- Supabase JS -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
     :root {
-      --bg-dark: #0f172a;
-      --bg-card: rgba(30, 41, 59, 0.7);
-      --bg-card-border: rgba(255, 255, 255, 0.1);
-      --accent-cyan: #06b6d4;
-      --accent-blue: #3b82f6;
-      --accent-green: #10b981;
-      --accent-purple: #8b5cf6;
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
-      --sidebar-width: 250px;
+      --bg-light: #f8fafc;
+      --bg-white: #ffffff;
+      --text-dark: #1e293b;
+      --text-muted: #64748b;
+      --border-color: #e2e8f0;
+      --accent-blue: #0284c7;
+      --accent-blue-light: #e0f2fe;
+      --table-header-bg: #38bdf8;
     }
 
-    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Roboto', sans-serif; }
 
     body {
-      background-color: var(--bg-dark);
-      color: var(--text-main);
+      background-color: var(--bg-light);
+      color: var(--text-dark);
       display: flex;
       min-height: 100vh;
-      overflow-x: hidden;
     }
 
-    /* --- SIDEBAR --- */
+    /* SIDEBAR BLANCO */
     .sidebar {
-      width: var(--sidebar-width);
-      background: rgba(15, 23, 42, 0.95);
-      border-right: 1px solid var(--bg-card-border);
-      padding: 20px;
+      width: 240px;
+      background: var(--bg-white);
+      border-right: 1px solid var(--border-color);
       display: flex;
       flex-direction: column;
-      position: fixed;
-      height: 100vh;
-      z-index: 100;
-      backdrop-filter: blur(10px);
+      padding: 20px 0;
+      flex-shrink: 0;
     }
 
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 12px;
+    .brand-logo {
+      padding: 0 20px 20px 20px;
       font-size: 1.1rem;
       font-weight: 700;
-      color: var(--accent-cyan);
-      margin-bottom: 30px;
-      padding: 0 10px;
-    }
-
-    .nav-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
-
-    .nav-item button {
-      width: 100%;
-      background: transparent;
-      border: none;
-      color: var(--text-muted);
-      padding: 12px 16px;
-      border-radius: 10px;
+      color: var(--accent-blue);
+      border-bottom: 1px solid var(--border-color);
       display: flex;
       align-items: center;
-      gap: 12px;
-      font-size: 0.88rem;
-      font-weight: 500;
+      gap: 10px;
+    }
+
+    .nav-list { list-style: none; margin-top: 15px; }
+
+    .nav-item {
+      padding: 14px 20px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text-dark);
       cursor: pointer;
-      transition: all 0.3s ease;
-      text-align: left;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 1px solid #f1f5f9;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
 
-    .nav-item button:hover, .nav-item.active button {
-      background: linear-gradient(90deg, rgba(6, 182, 212, 0.15), transparent);
-      color: var(--accent-cyan);
-      border-left: 3px solid var(--accent-cyan);
+    .nav-item:hover { background-color: #f1f5f9; }
+
+    .nav-item.active {
+      background-color: var(--accent-blue-light);
+      color: var(--accent-blue);
+      border-left: 4px solid var(--accent-blue);
     }
 
-    /* --- MAIN CONTENT --- */
-    .main-content {
-      margin-left: var(--sidebar-width);
+    /* CONTENEDOR PRINCIPAL BLANCO */
+    .main-wrapper {
       flex: 1;
-      padding: 25px;
-      width: calc(100% - var(--sidebar-width));
+      padding: 30px;
+      overflow-y: auto;
     }
 
-    .header-bar {
+    .dashboard-container {
+      background: var(--bg-white);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 35px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      min-height: 90vh;
+    }
+
+    .dashboard-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      flex-wrap: wrap;
-      gap: 15px;
       margin-bottom: 25px;
+      border-bottom: 2px solid var(--border-color);
+      padding-bottom: 15px;
     }
 
-    .header-title h1 { font-size: 1.5rem; font-weight: 700; }
-    .header-title p { color: var(--text-muted); font-size: 0.85rem; }
-
-    /* --- FILTROS --- */
-    .filter-bar {
-      display: flex;
-      gap: 12px;
-      background: var(--bg-card);
-      padding: 10px 16px;
-      border-radius: 12px;
-      border: 1px solid var(--bg-card-border);
-      align-items: center;
-      flex-wrap: wrap;
+    .dashboard-title {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--accent-blue);
     }
 
-    .filter-group { display: flex; align-items: center; gap: 6px; }
-    .filter-group label { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; }
-    .filter-group select {
-      background: #0f172a;
-      color: var(--text-main);
-      border: 1px solid var(--bg-card-border);
-      padding: 6px 10px;
-      border-radius: 8px;
-      font-size: 0.85rem;
+    /* FILTROS SUPERIORES */
+    .filters-bar {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+      margin-bottom: 30px;
+      background: #f8fafc;
+      padding: 15px;
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+    }
+
+    .filter-group { display: flex; flex-direction: column; gap: 5px; }
+    .filter-group label { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
+
+    .filter-select {
+      background: var(--bg-white);
+      color: var(--text-dark);
+      border: 1px solid var(--border-color);
+      padding: 10px;
+      border-radius: 6px;
+      font-weight: 500;
+      font-size: 0.9rem;
       outline: none;
     }
 
-    .btn-capture {
-      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
-      color: white;
-      border: none;
-      padding: 8px 14px;
-      border-radius: 8px;
-      font-weight: 600;
-      font-size: 0.85rem;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 6px;
+    /* TABLAS ESTILO BLANCO */
+    .table-responsive {
+      width: 100%;
+      overflow-x: auto;
+      margin-bottom: 35px;
     }
 
-    /* --- GRID --- */
-    .dashboard-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 20px; }
-    .card { background: var(--bg-card); border: 1px solid var(--bg-card-border); border-radius: 16px; padding: 20px; backdrop-filter: blur(12px); }
-
-    .col-3 { grid-column: span 3; }
-    .col-4 { grid-column: span 4; }
-    .col-6 { grid-column: span 6; }
-    .col-12 { grid-column: span 12; }
-
-    @media (max-width: 1024px) {
-      .col-3 { grid-column: span 6; }
-      .col-6 { grid-column: span 12; }
+    .table-custom {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
     }
 
-    /* KPI Card */
-    .kpi-card { display: flex; justify-content: space-between; align-items: center; }
-    .kpi-info h3 { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 5px; }
-    .kpi-info .value { font-size: 1.6rem; font-weight: 700; color: var(--text-main); }
-    .kpi-icon { width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; background: rgba(6, 182, 212, 0.1); color: var(--accent-cyan); }
+    .table-custom th {
+      background-color: var(--table-header-bg);
+      color: var(--bg-white);
+      padding: 10px 12px;
+      text-align: left;
+      font-weight: 700;
+      border: 1px solid var(--border-color);
+    }
 
-    /* TABLAS */
-    .table-container { width: 100%; overflow-x: auto; margin-top: 10px; }
-    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; text-align: left; }
-    th { background: rgba(15, 23, 42, 0.6); color: var(--text-muted); padding: 10px 12px; font-weight: 600; border-bottom: 1px solid var(--bg-card-border); }
-    td { padding: 10px 12px; border-bottom: 1px solid var(--bg-card-border); }
-    tr:hover td { background: rgba(255, 255, 255, 0.02); }
+    .table-custom td {
+      padding: 10px 12px;
+      border: 1px solid var(--border-color);
+      color: var(--text-dark);
+    }
+
+    .table-custom tr:nth-child(even) { background-color: #f8fafc; }
+
+    /* CONTENEDOR DE GRÁFICAS AMPLIAS */
+    .chart-container-large {
+      position: relative;
+      width: 100%;
+      height: 420px;
+      margin-top: 20px;
+      margin-bottom: 35px;
+      padding: 20px;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      background: var(--bg-white);
+    }
 
     .section-page { display: none; }
     .section-page.active { display: block; }
 
-    /* MODAL CAPTURA */
-    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); z-index: 200; justify-content: center; align-items: center; }
+    /* BOTÓN DE CAPTURA SUPABASE */
+    .btn-capture-float {
+      position: fixed;
+      bottom: 25px;
+      right: 25px;
+      background: var(--accent-blue);
+      color: white;
+      border: none;
+      padding: 14px 24px;
+      border-radius: 30px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* MODAL BLANCO */
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 200; justify-content: center; align-items: center; }
     .modal.active { display: flex; }
-    .modal-content { background: #1e293b; border: 1px solid var(--bg-card-border); border-radius: 16px; padding: 25px; width: 450px; max-width: 90%; }
-    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .modal-content { background: white; border-radius: 8px; padding: 30px; width: 450px; border: 1px solid var(--border-color); }
     .form-group { margin-bottom: 15px; }
-    .form-group label { display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 5px; }
-    .form-group input, .form-group select { width: 100%; padding: 10px; background: #0f172a; border: 1px solid var(--bg-card-border); border-radius: 8px; color: var(--text-main); outline: none; }
-    .btn-submit { width: 100%; padding: 12px; background: var(--accent-cyan); color: #0f172a; font-weight: 700; border: none; border-radius: 8px; cursor: pointer; }
+    .form-group label { display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 5px; color: var(--text-dark); }
+    .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; }
+    .btn-submit { width: 100%; padding: 12px; background: var(--accent-blue); color: white; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; }
   </style>
 </head>
 <body>
 
   <!-- SIDEBAR -->
   <aside class="sidebar">
-    <div class="brand">
-      <i class="fa-solid fa-shield-halved"></i>
-      <span>Prevención Pérdidas</span>
-    </div>
+    <div class="brand-logo"><i class="fa-solid fa-chart-line"></i> PREVENCIÓN 2026</div>
     <ul class="nav-list">
-      <li class="nav-item active"><button onclick="switchTab('general', this)"><i class="fa-solid fa-chart-pie"></i> General</button></li>
-      <li class="nav-item"><button onclick="switchTab('atencion', this)"><i class="fa-solid fa-user-check"></i> Atención y Servicio</button></li>
-      <li class="nav-item"><button onclick="switchTab('operacion', this)"><i class="fa-solid fa-store"></i> Operación Sucursales</button></li>
-      <li class="nav-item"><button onclick="switchTab('vencidos', this)"><i class="fa-solid fa-calendar-xmark"></i> Vencidos</button></li>
-      <li class="nav-item"><button onclick="switchTab('merma', this)"><i class="fa-solid fa-trash-can"></i> Merma</button></li>
-      <li class="nav-item"><button onclick="switchTab('cctv', this)"><i class="fa-solid fa-video"></i> CCTV y Alarmas</button></li>
-      <li class="nav-item"><button onclick="switchTab('inventarios', this)"><i class="fa-solid fa-boxes-stacked"></i> Inventarios</button></li>
+      <li class="nav-item active" onclick="switchTab('general', this)"><i class="fa-solid fa-database"></i> GENERAL (CONSOLIDADO)</li>
+      <li class="nav-item" onclick="switchTab('atencion', this)"><i class="fa-solid fa-users"></i> ATENCIÓN Y SERVICIO</li>
+      <li class="nav-item" onclick="switchTab('operacion', this)"><i class="fa-solid fa-store"></i> OPERACIÓN SUCURSALES</li>
+      <li class="nav-item" onclick="switchTab('vencidos', this)"><i class="fa-solid fa-calendar-xmark"></i> VENCIDOS</li>
+      <li class="nav-item" onclick="switchTab('merma', this)"><i class="fa-solid fa-trash-can"></i> MERMA</li>
+      <li class="nav-item" onclick="switchTab('cctv', this)"><i class="fa-solid fa-video"></i> CCTV Y ALARMAS</li>
+      <li class="nav-item" onclick="switchTab('inventarios', this)"><i class="fa-solid fa-boxes-stacked"></i> INVENTARIOS</li>
     </ul>
   </aside>
 
   <!-- MAIN -->
-  <main class="main-content">
-    
-    <div class="header-bar">
-      <div class="header-title">
-        <h1 id="page-title">General Overview</h1>
-        <p>Indicadores clave de rendimiento 2026</p>
-      </div>
+  <main class="main-wrapper">
+    <div class="dashboard-container">
 
-      <div class="filter-bar">
+      <!-- FILTROS PRINCIPALES -->
+      <div class="filters-bar">
         <div class="filter-group">
-          <label>Mes:</label>
-          <select id="filter-mes"><option>Todos</option><option>01. Enero</option><option>02. Febrero</option><option>03. Marzo</option></select>
-        </div>
-        <div class="filter-group">
-          <label>Sucursal:</label>
-          <select id="filter-sucursal"><option>Todas</option><option>Cuauhtémoc</option><option>Jalpa</option><option>Salinas</option></select>
-        </div>
-        <button class="btn-capture" onclick="abrirModal()"><i class="fa-solid fa-plus"></i> Capturar</button>
-      </div>
-    </div>
-
-    <!-- 1. GENERAL -->
-    <div id="page-general" class="section-page active">
-      <div class="dashboard-grid">
-        <div class="card col-3 kpi-card"><div class="kpi-info"><h3>CCTV Cobertura</h3><div class="value">98.2 %</div></div><div class="kpi-icon"><i class="fa-solid fa-camera"></i></div></div>
-        <div class="card col-3 kpi-card"><div class="kpi-info"><h3>Alarmas</h3><div class="value">71.6 %</div></div><div class="kpi-icon"><i class="fa-solid fa-bell"></i></div></div>
-        <div class="card col-3 kpi-card"><div class="kpi-info"><h3>Merma Total</h3><div class="value">$204,955.22</div></div><div class="kpi-icon"><i class="fa-solid fa-chart-line-down"></i></div></div>
-        <div class="card col-3 kpi-card"><div class="kpi-info"><h3>Vencidos Total</h3><div class="value">$881,188.91</div></div><div class="kpi-icon"><i class="fa-solid fa-triangle-exclamation"></i></div></div>
-
-        <div class="card col-6"><h3>Evolución de Merma</h3><canvas id="chartGeneralMerma"></canvas></div>
-        <div class="card col-6"><h3>Evolución de Vencidos</h3><canvas id="chartGeneralVencidos"></canvas></div>
-      </div>
-    </div>
-
-    <!-- 2. ATENCIÓN Y SERVICIO -->
-    <div id="page-atencion" class="section-page">
-      <div class="dashboard-grid">
-        <div class="card col-12">
-          <h3>Mes Ind / Promedio</h3>
-          <div class="table-container">
-            <table>
-              <thead><tr><th>Indicador</th><th>01. Enero</th><th>02. Febrero</th><th>03. Marzo</th><th>04. Abril</th><th>05. Mayo</th></tr></thead>
-              <tbody>
-                <tr><td>Protocolo</td><td>25.51%</td><td>25.91%</td><td>29.09%</td><td>28.13%</td><td>32.96%</td></tr>
-                <tr><td>Control</td><td>14.42%</td><td>14.67%</td><td>14.65%</td><td>14.86%</td><td>14.71%</td></tr>
-                <tr><td>Imagen</td><td>12.18%</td><td>12.39%</td><td>12.59%</td><td>12.90%</td><td>13.03%</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-        <div class="card col-5">
-          <h3>Ranking por Sucursal</h3>
-          <div class="table-container">
-            <table>
-              <thead><tr><th>#</th><th>Sucursal</th><th>Resultado</th></tr></thead>
-              <tbody>
-                <tr><td>1</td><td>Margaritas</td><td>75.20%</td></tr>
-                <tr><td>2</td><td>Cuauhtémoc</td><td>73.25%</td></tr>
-                <tr><td>3</td><td>La Panadera</td><td>68.42%</td></tr>
-                <tr><td>4</td><td>Jalpa</td><td>60.68%</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-        <div class="card col-7"><h3>Comparativo Desempeño</h3><canvas id="chartAtencion"></canvas></div>
-      </div>
-    </div>
-
-    <!-- 3. OPERACIÓN DE SUCURSAL -->
-    <div id="page-operacion" class="section-page">
-      <div class="dashboard-grid">
-        <div class="card col-12">
-          <h3>Mes Ind / Promedio (Operación)</h3>
-          <div class="table-container">
-            <table>
-              <thead><tr><th>Indicador</th><th>01. Enero</th><th>02. Febrero</th><th>03. Marzo</th><th>04. Abril</th><th>05. Mayo</th></tr></thead>
-              <tbody>
-                <tr><td>Control</td><td>21.90%</td><td>23.08%</td><td>21.90%</td><td>23.14%</td><td>85.06%</td></tr>
-                <tr><td>Farmacia</td><td>15.56%</td><td>14.58%</td><td>14.72%</td><td>15.64%</td><td>72.17%</td></tr>
-                <tr><td>Cámara Fría</td><td>16.00%</td><td>16.73%</td><td>16.80%</td><td>16.26%</td><td>65.80%</td></tr>
-                <tr><td>Autoservicio</td><td>13.17%</td><td>14.25%</td><td>13.52%</td><td>13.04%</td><td>73.72%</td></tr>
-                <tr><td>Bodega</td><td>11.27%</td><td>11.38%</td><td>11.44%</td><td>11.68%</td><td>74.86%</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-        <div class="card col-5">
-          <h3>Resultado por Sucursal</h3>
-          <div class="table-container">
-            <table>
-              <thead><tr><th>#</th><th>Sucursal</th><th>Resultado</th></tr></thead>
-              <tbody>
-                <tr><td>1</td><td>Cuauhtémoc</td><td>93.25%</td></tr>
-                <tr><td>2</td><td>Juan Aldama</td><td>93.25%</td></tr>
-                <tr><td>3</td><td>Ocampo</td><td>91.75%</td></tr>
-                <tr><td>4</td><td>Salinas</td><td>91.67%</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-        <div class="card col-7"><h3>Desempeño Operativo</h3><canvas id="chartOperacion"></canvas></div>
-      </div>
-    </div>
-
-    <!-- 4. VENCIDOS -->
-    <div id="page-vencidos" class="section-page">
-      <div class="dashboard-grid">
-        <div class="card col-12 kpi-card" style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), transparent);">
-          <div><h3>Resultado Total Vencidos</h3><div class="value" style="color:#60a5fa; font-size:2.2rem;">$881,188.91</div></div>
-          <div class="kpi-icon" style="color:#60a5fa;"><i class="fa-solid fa-sack-dollar"></i></div>
-        </div>
-        <div class="card col-5">
-          <h3>Montos por Sucursal</h3>
-          <div class="table-container">
-            <table>
-              <thead><tr><th>Sucursal</th><th>Monto Vencido</th></tr></thead>
-              <tbody>
-                <tr><td>Ojocaliente 1</td><td>$82,420.86</td></tr>
-                <tr><td>Jalpa</td><td>$55,244.43</td></tr>
-                <tr><td>La Panadera</td><td>$20,856.06</td></tr>
-                <tr><td>Villa Juárez</td><td>$19,391.15</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-        <div class="card col-7"><h3>Top Vencidos ($)</h3><canvas id="chartVencidosBar"></canvas></div>
-      </div>
-    </div>
-
-    <!-- 5. MERMA -->
-    <div id="page-merma" class="section-page">
-      <div class="dashboard-grid">
-        <div class="card col-12 kpi-card" style="background: linear-gradient(135deg, rgba(6, 182, 212, 0.2), transparent);">
-          <div><h3>Resultado Total Merma</h3><div class="value" style="color:var(--accent-cyan); font-size:2.2rem;">$204,955.22</div></div>
-          <div class="kpi-icon"><i class="fa-solid fa-box-open"></i></div>
-        </div>
-        <div class="card col-5">
-          <h3>Merma por Sucursal</h3>
-          <div class="table-container">
-            <table>
-              <thead><tr><th>Sucursal</th><th>Monto Merma</th></tr></thead>
-              <tbody>
-                <tr><td>La Panadera</td><td>$17,042.02</td></tr>
-                <tr><td>Jalpa</td><td>$16,764.70</td></tr>
-                <tr><td>Betulia</td><td>$8,494.06</td></tr>
-                <tr><td>Ojuelose 2</td><td>$8,035.13</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-        <div class="card col-7"><h3>Top Merma ($)</h3><canvas id="chartMermaBar"></canvas></div>
-      </div>
-    </div>
-
-    <!-- 6. CCTV Y ALARMAS -->
-    <div id="page-cctv" class="section-page">
-      <div class="dashboard-grid">
-        <div class="card col-6 kpi-card" style="justify-content:center; text-align:center; padding:30px;">
-          <div>
-            <h3>CCTV GLOBAL</h3>
-            <div class="value" style="font-size:3rem; color:var(--accent-cyan); margin-top:10px;">98.2 %</div>
-          </div>
-        </div>
-        <div class="card col-6 kpi-card" style="justify-content:center; text-align:center; padding:30px;">
-          <div>
-            <h3>ALARMAS GLOBAL</h3>
-            <div class="value" style="font-size:3rem; color:var(--accent-blue); margin-top:10px;">71.6 %</div>
-          </div>
-        </div>
-
-        <div class="card col-6">
-          <h3>Cobertura CCTV por Sucursal</h3>
-          <div class="table-container">
-            <table>
-              <thead><tr><th>Sucursal</th><th>CCTV %</th></tr></thead>
-              <tbody>
-                <tr><td>Asientos</td><td>100 %</td></tr>
-                <tr><td>Cuauhtémoc</td><td>100 %</td></tr>
-                <tr><td>San Ramón</td><td>87.5 %</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <div class="card col-6">
-          <h3>Cumplimiento Alarmas por Sucursal</h3>
-          <div class="table-container">
-            <table>
-              <thead><tr><th>Sucursal</th><th>Alarmas %</th></tr></thead>
-              <tbody>
-                <tr><td>Asientos</td><td>100 %</td></tr>
-                <tr><td>Ojocaliente 2</td><td>20 %</td></tr>
-                <tr><td>Loreto</td><td>0 %</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 7. INVENTARIOS -->
-    <div id="page-inventarios" class="section-page">
-      <div class="card col-12"><h3>Módulo de Inventarios</h3><p style="color:var(--text-muted); margin-top:10px;">Información general de diferencias de inventario.</p></div>
-    </div>
-
-  </main>
-
-  <!-- MODAL DE FORMULARIO DE CAPTURA -->
-  <div class="modal" id="modal-captura">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3>Capturar Indicadores</h3>
-        <i class="fa-solid fa-xmark" onclick="cerrarModal()" style="cursor:pointer;"></i>
-      </div>
-      <form onsubmit="guardarDatos(event)">
-        <div class="form-group">
-          <label>Módulo</label>
-          <select id="input-modulo">
-            <option>Atención y Servicio</option>
-            <option>Operación de Sucursales</option>
-            <option>Vencidos</option>
-            <option>Merma</option>
+          <label>Filtrar por Mes</label>
+          <select class="filter-select" id="filter-mes" onchange="aplicarFiltros()">
+            <option value="TODOS">TODOS LOS MESES</option>
+            <option value="01. ENERO">01. ENERO</option>
+            <option value="02. FEBRERO">02. FEBRERO</option>
+            <option value="03. MARZO">03. MARZO</option>
+            <option value="04. ABRIL">04. ABRIL</option>
+            <option value="05. MAYO">05. MAYO</option>
           </select>
         </div>
-        <div class="form-group"><label>Sucursal</label><input type="text" placeholder="Nombre sucursal" required></div>
-        <div class="form-group"><label>Valor / Resultado</label><input type="text" placeholder="Ej. 85.5% o $12,500" required></div>
-        <button type="submit" class="btn-submit">Guardar Registro</button>
+
+        <div class="filter-group">
+          <label>Filtrar por Sucursal</label>
+          <select class="filter-select" id="filter-sucursal" onchange="aplicarFiltros()">
+            <option value="TODAS">TODAS LAS SUCURSALES</option>
+            <option value="CUAUHTEMOC">CUAUHTEMOC</option>
+            <option value="JUAN ALDAMA">JUAN ALDAMA</option>
+            <option value="OCAMPO">OCAMPO</option>
+            <option value="JALPA">JALPA</option>
+            <option value="LA PANADERA">LA PANADERA</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label>Filtrar por Indicador</label>
+          <select class="filter-select" id="filter-indicador" onchange="aplicarFiltros()">
+            <option value="TODOS">TODOS LOS INDICADORES</option>
+            <option value="Atención y Servicio">Atención y Servicio</option>
+            <option value="Operación de Sucursales">Operación de Sucursales</option>
+            <option value="Vencidos">Vencidos ($)</option>
+            <option value="Merma">Merma ($)</option>
+            <option value="CCTV y Alarmas">CCTV y Alarmas (%)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- 1. PESTAÑA: GENERAL (CONSOLIDA TODA LA INFORMACIÓN POR SUCURSAL, MES E INDICADOR) -->
+      <div id="page-general" class="section-page active">
+        <div class="dashboard-header">
+          <h1 class="dashboard-title">Consolidado General de Indicadores</h1>
+        </div>
+
+        <p style="margin-bottom: 15px; font-weight: 500; color: var(--text-muted);">Muestreo integrado por Sucursal, Mes e Indicador (Filtrable en tiempo real):</p>
+        
+        <div class="table-responsive">
+          <table class="table-custom">
+            <thead>
+              <tr>
+                <th>SUCURSAL</th>
+                <th>MES</th>
+                <th>INDICADOR</th>
+                <th>RESULTADO / MONTO</th>
+                <th>ESTATUS</th>
+              </tr>
+            </thead>
+            <tbody id="tabla-general-consolidada">
+              <!-- Carga Dinámica vía JS -->
+            </tbody>
+          </table>
+        </div>
+
+        <h3 style="margin-top: 25px; font-size: 1.1rem; color: var(--accent-blue);">Comparativo Consolidado Global</h3>
+        <div class="chart-container-large">
+          <canvas id="chartGeneralConsolidado"></canvas>
+        </div>
+      </div>
+
+      <!-- 2. PESTAÑA: ATENCIÓN Y SERVICIO -->
+      <div id="page-atencion" class="section-page">
+        <div class="dashboard-header"><h1 class="dashboard-title">Atención y Servicio al Cliente</h1></div>
+        <div class="table-responsive">
+          <table class="table-custom">
+            <thead><tr><th>INDICADOR</th><th>01. ENERO</th><th>02. FEBRERO</th><th>03. MARZO</th><th>04. ABRIL</th><th>05. MAYO</th></tr></thead>
+            <tbody>
+              <tr><td>Protocolo</td><td>25.51 %</td><td>25.91 %</td><td>29.09 %</td><td>28.13 %</td><td>32.96 %</td></tr>
+              <tr><td>Control</td><td>14.42 %</td><td>14.67 %</td><td>14.65 %</td><td>14.86 %</td><td>14.71 %</td></tr>
+              <tr><td>Imagen</td><td>12.18 %</td><td>12.39 %</td><td>12.59 %</td><td>12.90 %</td><td>13.03 %</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="chart-container-large"><canvas id="chartAtencionAmplia"></canvas></div>
+      </div>
+
+      <!-- 3. PESTAÑA: OPERACIÓN DE SUCURSAL -->
+      <div id="page-operacion" class="section-page">
+        <div class="dashboard-header"><h1 class="dashboard-title">Operación de Sucursales</h1></div>
+        <div class="table-responsive">
+          <table class="table-custom">
+            <thead><tr><th>INDICADOR</th><th>01. ENERO</th><th>02. FEBRERO</th><th>03. MARZO</th><th>04. ABRIL</th><th>05. MAYO</th></tr></thead>
+            <tbody>
+              <tr><td>CONTROL</td><td>21.90 %</td><td>23.08 %</td><td>21.90 %</td><td>23.14 %</td><td>85.06 %</td></tr>
+              <tr><td>FARMACIA</td><td>15.56 %</td><td>14.58 %</td><td>14.72 %</td><td>15.64 %</td><td>72.17 %</td></tr>
+              <tr><td>CÁMARA FRÍA</td><td>16.00 %</td><td>16.73 %</td><td>16.80 %</td><td>16.26 %</td><td>65.80 %</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="chart-container-large"><canvas id="chartOperacionAmplia"></canvas></div>
+      </div>
+
+      <!-- 4. PESTAÑA: VENCIDOS -->
+      <div id="page-vencidos" class="section-page">
+        <div class="dashboard-header">
+          <h1 class="dashboard-title">Control de Vencidos</h1>
+          <div style="text-align: right;"><span style="font-size: 0.8rem; color: var(--text-muted);">TOTAL:</span> <b style="font-size: 1.5rem; color: var(--accent-blue);">$881,188.91</b></div>
+        </div>
+        <div class="chart-container-large"><canvas id="chartVencidosAmplia"></canvas></div>
+      </div>
+
+      <!-- 5. PESTAÑA: MERMA -->
+      <div id="page-merma" class="section-page">
+        <div class="dashboard-header">
+          <h1 class="dashboard-title">Análisis de Merma</h1>
+          <div style="text-align: right;"><span style="font-size: 0.8rem; color: var(--text-muted);">TOTAL:</span> <b style="font-size: 1.5rem; color: var(--accent-blue);">$204,955.22</b></div>
+        </div>
+        <div class="chart-container-large"><canvas id="chartMermaAmplia"></canvas></div>
+      </div>
+
+      <!-- 6. PESTAÑA: CCTV Y ALARMAS -->
+      <div id="page-cctv" class="section-page">
+        <div class="dashboard-header"><h1 class="dashboard-title">CCTV y Alarmas</h1></div>
+        <div class="chart-container-large"><canvas id="chartCCTVAmplia"></canvas></div>
+      </div>
+
+      <!-- 7. PESTAÑA: INVENTARIOS -->
+      <div id="page-inventarios" class="section-page">
+        <div class="dashboard-header"><h1 class="dashboard-title">Inventarios 2026</h1></div>
+        <p style="color: var(--text-muted);">Registro de auditorías e inventarios por sucursal.</p>
+      </div>
+
+      <!-- REGISTROS GUARDADOS EN SUPABASE -->
+      <div style="margin-top: 40px; border-top: 2px solid var(--border-color); padding-top: 20px;">
+        <h3 style="color: var(--text-dark); margin-bottom: 12px; font-size: 1rem;">Histórico de Capturas (Sincronizado con Supabase)</h3>
+        <div class="table-responsive">
+          <table class="table-custom">
+            <thead><tr><th>Fecha Registro</th><th>Módulo / Indicador</th><th>Sucursal</th><th>Valor Capturado</th></tr></thead>
+            <tbody id="tabla-supabase-historico">
+              <tr><td colspan="4">Cargando registros...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- BOTÓN FLOTANTE DE CAPTURA -->
+  <button class="btn-capture-float" onclick="abrirModal()"><i class="fa-solid fa-plus"></i> CAPTURAR REGISTRO</button>
+
+  <!-- MODAL DE CAPTURA -->
+  <div class="modal" id="modal-captura">
+    <div class="modal-content">
+      <h3 style="margin-bottom: 20px; color: var(--accent-blue);">Nuevo Registro de Indicador</h3>
+      <form onsubmit="guardarEnSupabase(event)">
+        <div class="form-group">
+          <label>Módulo / Indicador</label>
+          <select id="input-modulo">
+            <option value="Atención y Servicio">Atención y Servicio</option>
+            <option value="Operación de Sucursales">Operación de Sucursales</option>
+            <option value="Vencidos">Vencidos</option>
+            <option value="Merma">Merma</option>
+            <option value="CCTV y Alarmas">CCTV y Alarmas</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Sucursal</label>
+          <input type="text" id="input-sucursal" placeholder="Ej. CUAUHTEMOC" required>
+        </div>
+        <div class="form-group">
+          <label>Valor / Resultado</label>
+          <input type="text" id="input-valor" placeholder="Ej. 95.5% o $14,200" required>
+        </div>
+        <button type="submit" class="btn-submit">Guardar en Supabase</button>
       </form>
     </div>
   </div>
 
   <script>
-    // --- NAVEGACIÓN ENTRE PÁGINAS ---
-    function switchTab(pageId, btnElement) {
+    // BASE DE DATOS MATRIZ PARA LA HOJA GENERAL (SUCURSAL, MES, INDICADOR)
+    const baseDatosConsolidada = [
+      { sucursal: 'CUAUHTEMOC', mes: '01. ENERO', indicador: 'Operación de Sucursales', valor: '93.25 %', estatus: 'Excelente' },
+      { sucursal: 'CUAUHTEMOC', mes: '02. FEBRERO', indicador: 'Atención y Servicio', valor: '73.25 %', estatus: 'Regular' },
+      { sucursal: 'JUAN ALDAMA', mes: '01. ENERO', indicador: 'Operación de Sucursales', valor: '93.25 %', estatus: 'Excelente' },
+      { sucursal: 'JALPA', mes: '03. MARZO', indicador: 'Vencidos', valor: '$55,244.43', estatus: 'Crítico' },
+      { sucursal: 'LA PANADERA', mes: '04. ABRIL', indicador: 'Merma', valor: '$17,042.02', estatus: 'Atención' },
+      { sucursal: 'OCAMPO', mes: '05. MAYO', indicador: 'CCTV y Alarmas', valor: '98.50 %', estatus: 'Excelente' },
+      { sucursal: 'CUAUHTEMOC', mes: '03. MARZO', indicador: 'Vencidos', valor: '$12,400.00', estatus: 'Aceptable' }
+    ];
+
+    // CONFIGURACIÓN SUPABASE
+    const SUPABASE_URL = "https://oussvhvomwrndtufzfih.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im91c3N2aHZvbXdybmR0dWZ6ZmloIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY3MzAwMjcsImV4cCI6MjEwMjMwNjAyN30.2zF0BxBxuz7xr_lSVlcB6eGAZqn6_e_0cL7zBJqCaqc";
+    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // SWAP PESTAÑAS
+    function switchTab(pageId, element) {
       document.querySelectorAll('.section-page').forEach(p => p.classList.remove('active'));
       document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-
-      const targetPage = document.getElementById(`page-${pageId}`);
-      if (targetPage) targetPage.classList.add('active');
-
-      if (btnElement && btnElement.parentElement) {
-        btnElement.parentElement.classList.add('active');
-      }
-
-      const titles = {
-        'general': 'General Overview',
-        'atencion': 'Atención y Servicio al Cliente',
-        'operacion': 'Operación de Sucursales',
-        'vencidos': 'Control de Vencidos',
-        'merma': 'Análisis de Merma',
-        'cctv': 'CCTV y Alarmas',
-        'inventarios': 'Inventarios'
-      };
-      document.getElementById('page-title').innerText = titles[pageId] || 'Dashboard';
+      document.getElementById(`page-${pageId}`).classList.add('active');
+      if(element) element.classList.add('active');
     }
 
     function abrirModal() { document.getElementById('modal-captura').classList.add('active'); }
     function cerrarModal() { document.getElementById('modal-captura').classList.remove('active'); }
-    function guardarDatos(e) { e.preventDefault(); alert('¡Datos guardados con éxito!'); cerrarModal(); }
 
-    // --- GRÁFICOS INTERACTIVOS (CHART.JS) ---
+    // FILTRO DINÁMICO HOJA GENERAL
+    function aplicarFiltros() {
+      const fMes = document.getElementById('filter-mes').value;
+      const fSuc = document.getElementById('filter-sucursal').value;
+      const fInd = document.getElementById('filter-indicador').value;
+
+      const filtrados = baseDatosConsolidada.filter(item => {
+        const matchMes = (fMes === 'TODOS' || item.mes === fMes);
+        const matchSuc = (fSuc === 'TODAS' || item.sucursal === fSuc);
+        const matchInd = (fInd === 'TODOS' || item.indicador === fInd);
+        return matchMes && matchSuc && matchInd;
+      });
+
+      renderTablaConsolidada(filtrados);
+    }
+
+    function renderTablaConsolidada(datos) {
+      const tbody = document.getElementById('tabla-general-consolidada');
+      if (datos.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No se encontraron registros para esta combinación de filtros.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = datos.map(row => `
+        <tr>
+          <td><b>${row.sucursal}</b></td>
+          <td>${row.mes}</td>
+          <td>${row.indicador}</td>
+          <td><b>${row.valor}</b></td>
+          <td><span style="color: ${row.estatus==='Crítico'?'#ef4444':'#0284c7'}; font-weight:bold;">${row.estatus}</span></td>
+        </tr>
+      `).join('');
+    }
+
+    // SUPABASE INTEGRACIÓN
+    async function guardarEnSupabase(e) {
+      e.preventDefault();
+      const modulo = document.getElementById('input-modulo').value;
+      const sucursal = document.getElementById('input-sucursal').value;
+      const valor = document.getElementById('input-valor').value;
+
+      const { data, error } = await _supabase.from('registros').insert([{ modulo, sucursal, valor }]);
+      if (error) { alert("Error al guardar: " + error.message); } 
+      else { alert("¡Guardado en Supabase con éxito!"); cerrarModal(); cargarDatosSupabase(); }
+    }
+
+    async function cargarDatosSupabase() {
+      const { data, error } = await _supabase.from('registros').select('*').order('created_at', { ascending: false });
+      const tbody = document.getElementById('tabla-supabase-historico');
+      if (error) { tbody.innerHTML = `<tr><td colspan="4" style="color:red;">Aviso: Debes crear la tabla "registros" en el SQL Editor de Supabase.</td></tr>`; return; }
+      if (!data || data.length === 0) { tbody.innerHTML = '<tr><td colspan="4">No hay capturas registradas aún.</td></tr>'; return; }
+
+      tbody.innerHTML = data.map(r => `
+        <tr>
+          <td>${new Date(r.created_at).toLocaleDateString()}</td>
+          <td>${r.modulo}</td>
+          <td><b>${r.sucursal}</b></td>
+          <td><b>${r.valor}</b></td>
+        </tr>
+      `).join('');
+    }
+
+    // INICIALIZACIÓN DE GRÁFICAS AMPLIAS Y GRANDES
     window.onload = function() {
-      const configHorizontal = { responsive: true, plugins: { legend: { display: false } }, indexAxis: 'y' };
+      aplicarFiltros();
+      cargarDatosSupabase();
 
-      // General
-      new Chart(document.getElementById('chartGeneralMerma'), {
-        type: 'bar',
-        data: { labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May'], datasets: [{ label: 'Merma', data: [350, 410, 390, 420, 380], backgroundColor: '#06b6d4' }] }
-      });
-      new Chart(document.getElementById('chartGeneralVencidos'), {
+      const optionsLarge = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { position: 'top' } },
+        scales: { y: { grid: { color: '#e2e8f0' } }, x: { grid: { display: false } } }
+      };
+
+      // 1. Gráfica General Amplia
+      new Chart(document.getElementById('chartGeneralConsolidado'), {
         type: 'line',
-        data: { labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May'], datasets: [{ label: 'Vencidos', data: [1200, 1150, 1400, 1250, 1100], borderColor: '#3b82f6', tension: 0.3 }] }
+        data: {
+          labels: ['01. ENERO', '02. FEBRERO', '03. MARZO', '04. ABRIL', '05. MAYO'],
+          datasets: [
+            { label: 'Operación (%)', data: [85, 88, 90, 89, 93], borderColor: '#0284c7', backgroundColor: 'rgba(2, 132, 199, 0.1)', fill: true },
+            { label: 'Atención (%)', data: [70, 72, 75, 74, 78], borderColor: '#38bdf8', backgroundColor: 'transparent' }
+          ]
+        },
+        options: optionsLarge
       });
 
-      // Atención
-      new Chart(document.getElementById('chartAtencion'), {
-        type: 'bar', data: { labels: ['Margaritas', 'Cuauhtémoc', 'La Panadera', 'Jalpa'], datasets: [{ data: [75.2, 73.25, 68.42, 60.68], backgroundColor: '#06b6d4' }] }, options: configHorizontal
+      // 2. Gráfica Atención Amplia
+      new Chart(document.getElementById('chartAtencionAmplia'), {
+        type: 'bar',
+        data: {
+          labels: ['CUAUHTEMOC', 'MARGARITAS', 'LA PANADERA', 'JALPA', 'SAN RAMÓN'],
+          datasets: [{ label: 'Atención y Servicio %', data: [75.2, 73.2, 68.4, 60.6, 58.9], backgroundColor: '#38bdf8' }]
+        },
+        options: optionsLarge
       });
 
-      // Operación
-      new Chart(document.getElementById('chartOperacion'), {
-        type: 'bar', data: { labels: ['Juan Aldama', 'Cuauhtémoc', 'Ocampo', 'Salinas'], datasets: [{ data: [93.25, 93.25, 91.75, 91.67], backgroundColor: '#3b82f6' }] }, options: configHorizontal
+      // 3. Gráfica Operación Amplia
+      new Chart(document.getElementById('chartOperacionAmplia'), {
+        type: 'bar',
+        data: {
+          labels: ['JUAN ALDAMA', 'CUAUHTEMOC', 'OCAMPO', 'SALINAS', 'OJUELOS I'],
+          datasets: [{ label: 'Resultado Operativo %', data: [93.25, 93.25, 91.75, 91.67, 91.50], backgroundColor: '#0284c7' }]
+        },
+        options: optionsLarge
       });
 
-      // Vencidos
-      new Chart(document.getElementById('chartVencidosBar'), {
-        type: 'bar', data: { labels: ['Ojocaliente 1', 'Jalpa', 'Salinas 1', 'Salinas 2'], datasets: [{ data: [82420, 55244, 38000, 37500], backgroundColor: '#3b82f6' }] }, options: configHorizontal
+      // 4. Gráfica Vencidos Amplia
+      new Chart(document.getElementById('chartVencidosAmplia'), {
+        type: 'bar',
+        data: {
+          labels: ['OJOCALIENTE 1', 'JALPA', 'SALINAS 1', 'SALINAS 2', 'VILLA HIDALGO'],
+          datasets: [{ label: 'Monto Vencido ($)', data: [82420, 55244, 38000, 37800, 37500], backgroundColor: '#ef4444' }]
+        },
+        options: optionsLarge
       });
 
-      // Merma
-      new Chart(document.getElementById('chartMermaBar'), {
-        type: 'bar', data: { labels: ['La Panadera', 'Jalpa', 'Betulia', 'Ojuelos 2'], datasets: [{ data: [17042, 16764, 8494, 8035], backgroundColor: '#06b6d4' }] }, options: configHorizontal
+      // 5. Gráfica Merma Amplia
+      new Chart(document.getElementById('chartMermaAmplia'), {
+        type: 'bar',
+        data: {
+          labels: ['LA PANADERA', 'JALPA', 'BETULIA', 'OJUELOS 2', 'TRANCOSO'],
+          datasets: [{ label: 'Monto Merma ($)', data: [17042, 16764, 8494, 8035, 7500], backgroundColor: '#f97316' }]
+        },
+        options: optionsLarge
+      });
+
+      // 6. Gráfica CCTV Amplia
+      new Chart(document.getElementById('chartCCTVAmplia'), {
+        type: 'bar',
+        data: {
+          labels: ['ASIENTOS', 'CUAUHTEMOC', 'LORETO', 'SAN RAMON', 'BETULIA'],
+          datasets: [
+            { label: 'CCTV %', data: [100, 100, 100, 87.5, 90], backgroundColor: '#0284c7' },
+            { label: 'Alarmas %', data: [100, 100, 0, 50, 75], backgroundColor: '#94a3b8' }
+          ]
+        },
+        options: optionsLarge
       });
     };
   </script>
