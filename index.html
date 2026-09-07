@@ -589,6 +589,7 @@
         const dataToInsert = rows.map(r => ({
           modulo: r.Modulo || r.modulo || r.INDICADOR || 'Atención y Servicio',
           sucursal: r.Sucursal || r.sucursal || r.SUCURSAL || 'General',
+          mes: r.Mes || r.mes || r.MES || 'TODOS'
           valor: String(r.Valor || r.valor || r.VALOR || '0')
         }));
 
