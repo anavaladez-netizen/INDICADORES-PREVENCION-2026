@@ -121,7 +121,7 @@
       color: var(--accent-blue);
     }
 
-    /* FILTROS */
+    /* FILTROS MULTI-SELECT */
     .filters-bar {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -136,15 +136,22 @@
     .filter-group { display: flex; flex-direction: column; gap: 3px; }
     .filter-group label { font-size: 0.65rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
 
-    .filter-select {
+    .filter-select-multiple {
       background: var(--bg-white);
       color: var(--text-dark);
       border: 1px solid var(--border-color);
-      padding: 6px;
+      padding: 4px;
       border-radius: 4px;
       font-weight: 500;
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       outline: none;
+      height: 65px;
+    }
+
+    .filter-hint {
+      font-size: 0.6rem;
+      color: var(--text-muted);
+      font-style: italic;
     }
 
     /* GRID DISPOSICIÓN VERTICAL */
@@ -359,27 +366,30 @@
   <main class="main-wrapper">
     <div class="dashboard-container">
 
-      <!-- FILTROS -->
+      <!-- FILTROS MULTI-SELECT -->
       <div class="filters-bar">
         <div class="filter-group">
-          <label>Filtrar por Mes</label>
-          <select class="filter-select" id="filter-mes" onchange="aplicarFiltros()">
-            <option value="TODOS">TODOS LOS MESES</option>
+          <label>Filtrar por Mes (Múltiple)</label>
+          <select class="filter-select-multiple" id="filter-mes" multiple onchange="aplicarFiltros()">
+            <option value="TODOS" selected>-- TODOS LOS MESES --</option>
           </select>
+          <span class="filter-hint">Mantén Ctrl/Cmd para elegir varios</span>
         </div>
 
         <div class="filter-group">
-          <label>Filtrar por Sucursal</label>
-          <select class="filter-select" id="filter-sucursal" onchange="aplicarFiltros()">
-            <option value="TODAS">TODAS LAS SUCURSALES</option>
+          <label>Filtrar por Sucursal (Múltiple)</label>
+          <select class="filter-select-multiple" id="filter-sucursal" multiple onchange="aplicarFiltros()">
+            <option value="TODAS" selected>-- TODAS LAS SUCURSALES --</option>
           </select>
+          <span class="filter-hint">Mantén Ctrl/Cmd para elegir varias</span>
         </div>
 
         <div class="filter-group">
-          <label>Filtrar por Indicador</label>
-          <select class="filter-select" id="filter-indicador" onchange="aplicarFiltros()">
-            <option value="TODOS">TODOS LOS INDICADORES</option>
+          <label>Filtrar por Indicador (Múltiple)</label>
+          <select class="filter-select-multiple" id="filter-indicador" multiple onchange="aplicarFiltros()">
+            <option value="TODOS" selected>-- TODOS LOS INDICADORES --</option>
           </select>
+          <span class="filter-hint">Mantén Ctrl/Cmd para elegir varios</span>
         </div>
       </div>
 
@@ -440,14 +450,14 @@
           <div class="chart-card-compact">
             <div class="chart-card-header">
               <span class="chart-card-title">Resultado por Sucursal</span>
-              <button class="btn-sort-chart" onclick="toggleOrdenGrafica('atencion_suc')">Ordenar <i class="fa-solid fa-sort"></i></button>
+              <button class="btn-sort-chart" onclick="toggleOrdenGrafica('atencion_suc')"><span id="lbl-atencion_suc">Mayor a Menor</span> <i class="fa-solid fa-sort"></i></button>
             </div>
             <div class="chart-body-compact"><canvas id="chartAtencionSuc"></canvas></div>
           </div>
           <div class="chart-card-compact">
             <div class="chart-card-header">
               <span class="chart-card-title">Resultado por Mes</span>
-              <button class="btn-sort-chart" onclick="toggleOrdenGrafica('atencion_mes')">Ordenar <i class="fa-solid fa-sort"></i></button>
+              <button class="btn-sort-chart" onclick="toggleOrdenGrafica('atencion_mes')"><span id="lbl-atencion_mes">Mayor a Menor</span> <i class="fa-solid fa-sort"></i></button>
             </div>
             <div class="chart-body-compact"><canvas id="chartAtencionMes"></canvas></div>
           </div>
@@ -461,14 +471,14 @@
           <div class="chart-card-compact">
             <div class="chart-card-header">
               <span class="chart-card-title">Resultado por Sucursal</span>
-              <button class="btn-sort-chart" onclick="toggleOrdenGrafica('operacion_suc')">Ordenar <i class="fa-solid fa-sort"></i></button>
+              <button class="btn-sort-chart" onclick="toggleOrdenGrafica('operacion_suc')"><span id="lbl-operacion_suc">Mayor a Menor</span> <i class="fa-solid fa-sort"></i></button>
             </div>
             <div class="chart-body-compact"><canvas id="chartOperacionSuc"></canvas></div>
           </div>
           <div class="chart-card-compact">
             <div class="chart-card-header">
               <span class="chart-card-title">Resultado por Mes</span>
-              <button class="btn-sort-chart" onclick="toggleOrdenGrafica('operacion_mes')">Ordenar <i class="fa-solid fa-sort"></i></button>
+              <button class="btn-sort-chart" onclick="toggleOrdenGrafica('operacion_mes')"><span id="lbl-operacion_mes">Mayor a Menor</span> <i class="fa-solid fa-sort"></i></button>
             </div>
             <div class="chart-body-compact"><canvas id="chartOperacionMes"></canvas></div>
           </div>
@@ -482,14 +492,14 @@
           <div class="chart-card-compact">
             <div class="chart-card-header">
               <span class="chart-card-title">Monto Vencido por Sucursal</span>
-              <button class="btn-sort-chart" onclick="toggleOrdenGrafica('vencidos_suc')">Ordenar <i class="fa-solid fa-sort"></i></button>
+              <button class="btn-sort-chart" onclick="toggleOrdenGrafica('vencidos_suc')"><span id="lbl-vencidos_suc">Mayor a Menor</span> <i class="fa-solid fa-sort"></i></button>
             </div>
             <div class="chart-body-compact"><canvas id="chartVencidosSuc"></canvas></div>
           </div>
           <div class="chart-card-compact">
             <div class="chart-card-header">
               <span class="chart-card-title">Monto Vencido por Mes</span>
-              <button class="btn-sort-chart" onclick="toggleOrdenGrafica('vencidos_mes')">Ordenar <i class="fa-solid fa-sort"></i></button>
+              <button class="btn-sort-chart" onclick="toggleOrdenGrafica('vencidos_mes')"><span id="lbl-vencidos_mes">Mayor a Menor</span> <i class="fa-solid fa-sort"></i></button>
             </div>
             <div class="chart-body-compact"><canvas id="chartVencidosMes"></canvas></div>
           </div>
@@ -503,14 +513,14 @@
           <div class="chart-card-compact">
             <div class="chart-card-header">
               <span class="chart-card-title">Monto Merma por Sucursal</span>
-              <button class="btn-sort-chart" onclick="toggleOrdenGrafica('merma_suc')">Ordenar <i class="fa-solid fa-sort"></i></button>
+              <button class="btn-sort-chart" onclick="toggleOrdenGrafica('merma_suc')"><span id="lbl-merma_suc">Mayor a Menor</span> <i class="fa-solid fa-sort"></i></button>
             </div>
             <div class="chart-body-compact"><canvas id="chartMermaSuc"></canvas></div>
           </div>
           <div class="chart-card-compact">
             <div class="chart-card-header">
               <span class="chart-card-title">Monto Merma por Mes</span>
-              <button class="btn-sort-chart" onclick="toggleOrdenGrafica('merma_mes')">Ordenar <i class="fa-solid fa-sort"></i></button>
+              <button class="btn-sort-chart" onclick="toggleOrdenGrafica('merma_mes')"><span id="lbl-merma_mes">Mayor a Menor</span> <i class="fa-solid fa-sort"></i></button>
             </div>
             <div class="chart-body-compact"><canvas id="chartMermaMes"></canvas></div>
           </div>
@@ -524,14 +534,14 @@
           <div class="chart-card-compact">
             <div class="chart-card-header">
               <span class="chart-card-title">Cumplimiento por Sucursal</span>
-              <button class="btn-sort-chart" onclick="toggleOrdenGrafica('cctv_suc')">Ordenar <i class="fa-solid fa-sort"></i></button>
+              <button class="btn-sort-chart" onclick="toggleOrdenGrafica('cctv_suc')"><span id="lbl-cctv_suc">Mayor a Menor</span> <i class="fa-solid fa-sort"></i></button>
             </div>
             <div class="chart-body-compact"><canvas id="chartCCTVSuc"></canvas></div>
           </div>
           <div class="chart-card-compact">
             <div class="chart-card-header">
               <span class="chart-card-title">Cumplimiento por Mes</span>
-              <button class="btn-sort-chart" onclick="toggleOrdenGrafica('cctv_mes')">Ordenar <i class="fa-solid fa-sort"></i></button>
+              <button class="btn-sort-chart" onclick="toggleOrdenGrafica('cctv_mes')"><span id="lbl-cctv_mes">Mayor a Menor</span> <i class="fa-solid fa-sort"></i></button>
             </div>
             <div class="chart-body-compact"><canvas id="chartCCTVMes"></canvas></div>
           </div>
@@ -549,7 +559,7 @@
           <span style="font-size: 0.75rem; color: var(--text-muted);"><i class="fa-solid fa-sort"></i> Ordenar A-Z / 0-9</span>
         </div>
         
-        <!-- TOOLBAR DE EDICIÓN MULTIPLE -->
+        <!-- TOOLBAR DE EDICIÓN MÚLTIPLE -->
         <div class="bulk-toolbar" id="bulk-toolbar">
           <span style="font-weight: bold; font-size: 0.75rem; color: var(--accent-blue);">
             <span id="count-selected">0</span> seleccionados:
@@ -719,10 +729,6 @@
       const selectSuc = document.getElementById('filter-sucursal');
       const selectInd = document.getElementById('filter-indicador');
 
-      const valMesAct = selectMes.value;
-      const valSucAct = selectSuc.value;
-      const valIndAct = selectInd.value;
-
       const mesesUnicos = new Set();
       const sucursalesUnicas = new Set();
       const indicadoresUnicos = new Set();
@@ -733,29 +739,30 @@
         if (r.modulo) indicadoresUnicos.add(r.modulo.trim());
       });
 
-      selectMes.innerHTML = '<option value="TODOS">TODOS LOS MESES</option>' + 
+      selectMes.innerHTML = '<option value="TODOS" selected>-- TODOS LOS MESES --</option>' + 
         Array.from(mesesUnicos).sort().map(m => `<option value="${m}">${m}</option>`).join('');
 
-      selectSuc.innerHTML = '<option value="TODAS">TODAS LAS SUCURSALES</option>' + 
+      selectSuc.innerHTML = '<option value="TODAS" selected>-- TODAS LAS SUCURSALES --</option>' + 
         Array.from(sucursalesUnicas).sort().map(s => `<option value="${s}">${s}</option>`).join('');
 
-      selectInd.innerHTML = '<option value="TODOS">TODOS LOS INDICADORES</option>' + 
+      selectInd.innerHTML = '<option value="TODOS" selected>-- TODOS LOS INDICADORES --</option>' + 
         Array.from(indicadoresUnicos).sort().map(i => `<option value="${i}">${i}</option>`).join('');
+    }
 
-      if (Array.from(selectMes.options).some(o => o.value === valMesAct)) selectMes.value = valMesAct;
-      if (Array.from(selectSuc.options).some(o => o.value === valSucAct)) selectSuc.value = valSucAct;
-      if (Array.from(selectInd.options).some(o => o.value === valIndAct)) selectInd.value = valIndAct;
+    function obtenerValoresSeleccionados(selectId) {
+      const select = document.getElementById(selectId);
+      return Array.from(select.selectedOptions).map(option => option.value);
     }
 
     function aplicarFiltros() {
-      const fMes = document.getElementById('filter-mes').value;
-      const fSuc = document.getElementById('filter-sucursal').value;
-      const fInd = document.getElementById('filter-indicador').value;
+      const selMeses = obtenerValoresSeleccionados('filter-mes');
+      const selSucursales = obtenerValoresSeleccionados('filter-sucursal');
+      const selIndicadores = obtenerValoresSeleccionados('filter-indicador');
 
       datosFiltradosActuales = datosOriginalesSupabase.filter(function(r) {
-        const matchMes = (fMes === 'TODOS' || (r.mes && r.mes.trim() === fMes));
-        const matchSuc = (fSuc === 'TODAS' || (r.sucursal && r.sucursal.trim().toUpperCase() === fSuc));
-        const matchInd = (fInd === 'TODOS' || (r.modulo && r.modulo.trim() === fInd));
+        const matchMes = selMeses.includes('TODOS') || (r.mes && selMeses.includes(r.mes.trim()));
+        const matchSuc = selSucursales.includes('TODAS') || (r.sucursal && selSucursales.includes(r.sucursal.trim().toUpperCase()));
+        const matchInd = selIndicadores.includes('TODOS') || (r.modulo && selIndicadores.includes(r.modulo.trim()));
         return matchMes && matchSuc && matchInd;
       });
 
@@ -770,10 +777,17 @@
         chartInstances[chartKey].destroy();
       }
 
-      let dir = ordenGraficas[chartKey] || 'desc';
+      let modoOrden = ordenGraficas[chartKey] || 'val_desc';
       let indices = labels.map((_, i) => i);
 
-      indices.sort((a, b) => dir === 'desc' ? values[b] - values[a] : values[a] - values[b]);
+      // LÓGICA DE ORDENAMIENTO (VALOR O ALFABÉTICO)
+      indices.sort((a, b) => {
+        if (modoOrden === 'val_desc') return values[b] - values[a];
+        if (modoOrden === 'val_asc') return values[a] - values[b];
+        if (modoOrden === 'az') return String(labels[a]).localeCompare(String(labels[b]));
+        if (modoOrden === 'za') return String(labels[b]).localeCompare(String(labels[a]));
+        return 0;
+      });
 
       let sortedLabels = indices.map(i => labels[i]);
       let sortedValues = indices.map(i => values[i]);
@@ -802,7 +816,25 @@
     }
 
     function toggleOrdenGrafica(chartKey) {
-      ordenGraficas[chartKey] = ordenGraficas[chartKey] === 'asc' ? 'desc' : 'asc';
+      const estados = ['val_desc', 'val_asc', 'az', 'za'];
+      const textos = {
+        'val_desc': 'Mayor a Menor',
+        'val_asc': 'Menor a Mayor',
+        'az': 'A - Z',
+        'za': 'Z - A'
+      };
+
+      let actual = ordenGraficas[chartKey] || 'val_desc';
+      let siguienteIdx = (estados.indexOf(actual) + 1) % estados.length;
+      let nuevoModo = estados[siguienteIdx];
+
+      ordenGraficas[chartKey] = nuevoModo;
+      
+      const lblSpan = document.getElementById('lbl-' + chartKey);
+      if (lblSpan) {
+        lblSpan.innerText = textos[nuevoModo];
+      }
+
       actualizarTodasLasGraficas();
     }
 
@@ -860,7 +892,6 @@
       });
     }
 
-    // RENDERIZADO DE LAS 5 GRÁFICAS DEL GENERAL POR MES
     function renderizarGraficasGeneralPorMes() {
       const listaIndicadores = [
         { key: 'gen_atencion', canvas: 'chartGenAtencion', mod: 'Atención', color: '#0284c7' },
