@@ -352,13 +352,13 @@
   <aside class="sidebar">
     <div class="brand-logo"><i class="fa-solid fa-chart-line"></i> PREVENCIÓN 2026</div>
     <ul class="nav-list">
-      <li class="nav-item active" onclick="switchTab('general', this)"><i class="fa-solid fa-database"></i> GENERAL (CONSOLIDADO)</li>
-      <li class="nav-item" onclick="switchTab('atencion', this)"><i class="fa-solid fa-users"></i> ATENCIÓN Y SERVICIO</li>
-      <li class="nav-item" onclick="switchTab('operacion', this)"><i class="fa-solid fa-store"></i> OPERACIÓN SUCURSALES</li>
-      <li class="nav-item" onclick="switchTab('vencidos', this)"><i class="fa-solid fa-calendar-xmark"></i> VENCIDOS</li>
-      <li class="nav-item" onclick="switchTab('merma', this)"><i class="fa-solid fa-trash-can"></i> MERMA</li>
-      <li class="nav-item" onclick="switchTab('cctv', this)"><i class="fa-solid fa-video"></i> CCTV Y ALARMAS</li>
-      <li class="nav-item" onclick="switchTab('inventarios', this)"><i class="fa-solid fa-boxes-stacked"></i> INVENTARIOS</li>
+      <li class="nav-item active" onclick="switchTab('general', this, 'GENERAL')"><i class="fa-solid fa-database"></i> GENERAL (CONSOLIDADO)</li>
+      <li class="nav-item" onclick="switchTab('atencion', this, 'Atención y Servicio')"><i class="fa-solid fa-users"></i> ATENCIÓN Y SERVICIO</li>
+      <li class="nav-item" onclick="switchTab('operacion', this, 'Operación de Sucursales')"><i class="fa-solid fa-store"></i> OPERACIÓN SUCURSALES</li>
+      <li class="nav-item" onclick="switchTab('vencidos', this, 'Vencidos')"><i class="fa-solid fa-calendar-xmark"></i> VENCIDOS</li>
+      <li class="nav-item" onclick="switchTab('merma', this, 'Merma')"><i class="fa-solid fa-trash-can"></i> MERMA</li>
+      <li class="nav-item" onclick="switchTab('cctv', this, 'CCTV y Alarmas')"><i class="fa-solid fa-video"></i> CCTV Y ALARMAS</li>
+      <li class="nav-item" onclick="switchTab('inventarios', this, 'Inventarios')"><i class="fa-solid fa-boxes-stacked"></i> INVENTARIOS</li>
     </ul>
   </aside>
 
@@ -631,6 +631,7 @@
             <option value="Vencidos">Vencidos</option>
             <option value="Merma">Merma</option>
             <option value="CCTV y Alarmas">CCTV y Alarmas</option>
+            <option value="Inventarios">Inventarios</option>
           </select>
         </div>
         <div class="form-group">
@@ -675,6 +676,7 @@
 
     let datosOriginalesSupabase = [];
     let datosFiltradosActuales = [];
+    let moduloFiltroActivo = 'GENERAL'; // Controla el módulo seleccionado en el Sidebar
     
     let columnaOrden = 'created_at';
     let ordenAscendente = false;
@@ -682,11 +684,26 @@
     let chartInstances = {};
     let ordenGraficas = {};
 
-    function switchTab(pageId, element) {
+    function formatearValorLimpio(valStr) {
+      if (!valStr) return '0';
+      let str = String(valStr);
+      let numPuro = parseFloat(str.replace(/[^0-9.-]+/g, ""));
+      if (!isNaN(numPuro)) {
+        let numRedondeado = Math.round(numPuro * 100) / 100;
+        if (str.includes('%')) return numRedondeado + '%';
+        if (str.includes('$')) return '$' + numRedondeado.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      }
+      return str;
+    }
+
+    function switchTab(pageId, element, nombreModulo) {
       document.querySelectorAll('.section-page').forEach(function(p) { p.classList.remove('active'); });
       document.querySelectorAll('.nav-item').forEach(function(i) { i.classList.remove('active'); });
       document.getElementById('page-' + pageId).classList.add('active');
       if (element) { element.classList.add('active'); }
+
+      moduloFiltroActivo = nombreModulo;
+      aplicarFiltros();
     }
 
     function abrirModal(editItem) {
@@ -702,6 +719,9 @@
         document.getElementById('edit-id').value = '';
         document.getElementById('input-sucursal').value = '';
         document.getElementById('input-valor').value = '';
+        if (moduloFiltroActivo !== 'GENERAL') {
+          document.getElementById('input-modulo').value = moduloFiltroActivo;
+        }
       }
       document.getElementById('modal-captura').classList.add('active');
     }
@@ -763,7 +783,14 @@
         const matchMes = selMeses.includes('TODOS') || (r.mes && selMeses.includes(r.mes.trim()));
         const matchSuc = selSucursales.includes('TODAS') || (r.sucursal && selSucursales.includes(r.sucursal.trim().toUpperCase()));
         const matchInd = selIndicadores.includes('TODOS') || (r.modulo && selIndicadores.includes(r.modulo.trim()));
-        return matchMes && matchSuc && matchInd;
+        
+        // FILTRADO POR NAVEGACIÓN LATERAL (MÓDULOS)
+        let matchModuloSidebar = true;
+        if (moduloFiltroActivo !== 'GENERAL') {
+          matchModuloSidebar = (r.modulo || '').toLowerCase().includes(moduloFiltroActivo.toLowerCase());
+        }
+
+        return matchMes && matchSuc && matchInd && matchModuloSidebar;
       });
 
       ejecutarOrdenamiento();
@@ -780,7 +807,6 @@
       let modoOrden = ordenGraficas[chartKey] || 'val_desc';
       let indices = labels.map((_, i) => i);
 
-      // LÓGICA DE ORDENAMIENTO (VALOR O ALFABÉTICO)
       indices.sort((a, b) => {
         if (modoOrden === 'val_desc') return values[b] - values[a];
         if (modoOrden === 'val_asc') return values[a] - values[b];
@@ -981,17 +1007,18 @@
       const tbody = document.getElementById('tabla-supabase-historico');
       
       if (data.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">No hay registros que coincidan con los filtros.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">No hay registros capturados para este módulo/filtro.</td></tr>';
       } else {
         tbody.innerHTML = data.map(function(r) {
           const indexOrig = datosOriginalesSupabase.findIndex(d => d.id === r.id);
+          const valorFormateado = formatearValorLimpio(r.valor);
           return '<tr>' +
             '<td style="text-align:center;"><input type="checkbox" class="row-check" value="' + r.id + '" data-valor="' + (r.valor || '') + '" onchange="actualizarContadorSeleccionados()"></td>' +
             '<td>' + new Date(r.created_at).toLocaleDateString() + '</td>' +
             '<td>' + (r.modulo || 'Atención y Servicio') + '</td>' +
             '<td><b>' + (r.sucursal || 'General') + '</b></td>' +
             '<td>' + (r.mes || '01. ENERO') + '</td>' +
-            '<td><b>' + (r.valor || '0') + '</b></td>' +
+            '<td><b>' + valorFormateado + '</b></td>' +
             '<td>' +
               '<button class="btn-action-table btn-edit" onclick="prepararEdicion(' + indexOrig + ')"><i class="fa-solid fa-pen"></i></button>' +
               '<button class="btn-action-table btn-delete" onclick="eliminarRegistro(' + r.id + ')"><i class="fa-solid fa-trash"></i></button>' +
@@ -1138,7 +1165,8 @@
       const modulo = document.getElementById('input-modulo').value;
       const sucursal = document.getElementById('input-sucursal').value;
       const mes = document.getElementById('input-mes').value;
-      const valor = document.getElementById('input-valor').value;
+      const valorRaw = document.getElementById('input-valor').value;
+      const valor = formatearValorLimpio(valorRaw);
 
       if (id) {
         const res = await _supabase.from('registros').update({ modulo: modulo, sucursal: sucursal, mes: mes, valor: valor }).eq('id', id);
@@ -1187,10 +1215,11 @@
           let valRaw = String(r.Valor || r.valor || r.VALOR || '0');
           let numVal = parseFloat(valRaw.replace(/[^0-9.-]+/g, ""));
           
-          if (!isNaN(numVal) && valRaw.includes('.')) {
-            if (valRaw.includes('%')) valRaw = numVal.toFixed(2) + '%';
-            else if (valRaw.includes('$')) valRaw = '$' + numVal.toFixed(2);
-            else valRaw = String(Number(numVal.toFixed(2)));
+          if (!isNaN(numVal)) {
+            let numFixed = Math.round(numVal * 100) / 100;
+            if (valRaw.includes('%')) valRaw = numFixed + '%';
+            else if (valRaw.includes('$')) valRaw = '$' + numFixed;
+            else valRaw = String(numFixed);
           }
 
           return {
