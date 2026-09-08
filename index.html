@@ -165,6 +165,17 @@
       border: 1px solid var(--border-color);
     }
 
+    /* ENCABEZADOS ORDENABLES EN LA TABLA HISTÓRICA */
+    .table-custom th.sortable {
+      cursor: pointer;
+      user-select: none;
+      transition: background-color 0.2s;
+    }
+
+    .table-custom th.sortable:hover {
+      background-color: #0284c7;
+    }
+
     .table-custom td {
       padding: 10px 12px;
       border: 1px solid var(--border-color);
@@ -368,9 +379,12 @@
         <div class="dashboard-header"><h1 class="dashboard-title">Inventarios 2026</h1></div>
       </div>
 
-      <!-- HISTÓRICO CON HERRAMIENTAS DE EDICIÓN MASIVA -->
+      <!-- HISTÓRICO CON HERRAMIENTAS DE EDICIÓN MASIVA Y ORDENAMIENTO -->
       <div style="margin-top: 40px; border-top: 2px solid var(--border-color); padding-top: 20px;">
-        <h3 style="color: var(--text-dark); font-size: 1rem; margin-bottom: 12px;">Histórico de Capturas (Sincronizado con Supabase)</h3>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <h3 style="color: var(--text-dark); font-size: 1rem;">Histórico de Capturas (Haz clic en los encabezados para ordenar)</h3>
+          <span style="font-size: 0.8rem; color: var(--text-muted);"><i class="fa-solid fa-sort"></i> Haz clic en una columna para cambiar A-Z / 0-9</span>
+        </div>
         
         <!-- BARRA DE ACCIONES EN MASA -->
         <div class="bulk-toolbar" id="bulk-toolbar">
@@ -404,11 +418,11 @@
             <thead>
               <tr>
                 <th style="width: 40px; text-align: center;"><input type="checkbox" id="check-all" onchange="toggleSelectAll(this)"></th>
-                <th>Fecha Registro</th>
-                <th>Módulo / Indicador</th>
-                <th>Sucursal</th>
-                <th>Mes</th>
-                <th>Valor Capturado</th>
+                <th class="sortable" onclick="ordenarTabla('created_at')">Fecha Registro <span id="sort-created_at">↕</span></th>
+                <th class="sortable" onclick="ordenarTabla('modulo')">Módulo / Indicador <span id="sort-modulo">↕</span></th>
+                <th class="sortable" onclick="ordenarTabla('sucursal')">Sucursal <span id="sort-sucursal">↕</span></th>
+                <th class="sortable" onclick="ordenarTabla('mes')">Mes <span id="sort-mes">↕</span></th>
+                <th class="sortable" onclick="ordenarTabla('valor')">Valor Capturado <span id="sort-valor">↕</span></th>
                 <th style="width: 120px;">Acciones</th>
               </tr>
             </thead>
@@ -478,6 +492,11 @@
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     let datosOriginalesSupabase = [];
+    let datosFiltradosActuales = [];
+    
+    // Variables de control de ordenamiento
+    let columnaOrden = 'created_at';
+    let ordenAscendente = false; // Por defecto lo más reciente arriba
 
     function switchTab(pageId, element) {
       document.querySelectorAll('.section-page').forEach(function(p) { p.classList.remove('active'); });
@@ -507,7 +526,7 @@
       document.getElementById('modal-captura').classList.remove('active');
     }
 
-    // CARGAR DATOS DESDE SUPABASE Y POBLAR FILTROS AUTOMÁTICAMENTE
+    // CARGAR DATOS DESDE SUPABASE Y POBLAR FILTROS
     async function cargarDatosSupabase() {
       const res = await _supabase.from('registros').select('*').order('created_at', { ascending: false });
       
@@ -522,7 +541,7 @@
       aplicarFiltros();
     }
 
-    // POBLAR OPCIONES DE FILTROS BASADO EN LOS DATOS EXISTENTES
+    // POBLAR OPCIONES DE FILTROS
     function poblarOpcionesFiltros(data) {
       const selectMes = document.getElementById('filter-mes');
       const selectSuc = document.getElementById('filter-sucursal');
@@ -556,21 +575,71 @@
       if (Array.from(selectInd.options).some(o => o.value === valIndAct)) selectInd.value = valIndAct;
     }
 
-    // APLICAR FILTROS Y RECALCULAR
+    // APLICAR FILTROS SUPERIORES
     function aplicarFiltros() {
       const fMes = document.getElementById('filter-mes').value;
       const fSuc = document.getElementById('filter-sucursal').value;
       const fInd = document.getElementById('filter-indicador').value;
 
-      const dataFiltrada = datosOriginalesSupabase.filter(function(r) {
+      datosFiltradosActuales = datosOriginalesSupabase.filter(function(r) {
         const matchMes = (fMes === 'TODOS' || (r.mes && r.mes.trim() === fMes));
         const matchSuc = (fSuc === 'TODAS' || (r.sucursal && r.sucursal.trim().toUpperCase() === fSuc));
         const matchInd = (fInd === 'TODOS' || (r.modulo && r.modulo.trim() === fInd));
         return matchMes && matchSuc && matchInd;
       });
 
-      renderizarTablaHistorico(dataFiltrada);
-      generarConsolidadoPorIndicador(dataFiltrada);
+      ejecutarOrdenamiento();
+      generarConsolidadoPorIndicador(datosFiltradosActuales);
+    }
+
+    // FUNCIÓN PARA CAMBIAR COLUMNA O DIRECCIÓN DE ORDEN
+    function ordenarTabla(columna) {
+      if (columnaOrden === columna) {
+        ordenAscendente = !ordenAscendente; // Invertir orden
+      } else {
+        columnaOrden = columna;
+        ordenAscendente = true; // Por defecto A-Z / Menor a Mayor al cambiar
+      }
+      
+      // Actualizar flechitas de la tabla
+      ['created_at', 'modulo', 'sucursal', 'mes', 'valor'].forEach(c => {
+        const span = document.getElementById('sort-' + c);
+        if (span) {
+          if (c === columnaOrden) {
+            span.innerText = ordenAscendente ? ' ↑' : ' ↓';
+          } else {
+            span.innerText = ' ↕';
+          }
+        }
+      });
+
+      ejecutarOrdenamiento();
+    }
+
+    // EJECUTAR EL ORDENAMIENTO DE LA TABLA DE HISTÓRICO
+    function ejecutarOrdenamiento() {
+      datosFiltradosActuales.sort((a, b) => {
+        let valA = a[columnaOrden] || '';
+        let valB = b[columnaOrden] || '';
+
+        // Si se ordena por el 'valor', convertir de texto numérico, %, $ a números flotantes
+        if (columnaOrden === 'valor') {
+          valA = parseFloat(String(valA).replace(/[^0-9.-]+/g, "")) || 0;
+          valB = parseFloat(String(valB).replace(/[^0-9.-]+/g, "")) || 0;
+        } else if (columnaOrden === 'created_at') {
+          valA = new Date(valA).getTime() || 0;
+          valB = new Date(valB).getTime() || 0;
+        } else {
+          valA = String(valA).toLowerCase();
+          valB = String(valB).toLowerCase();
+        }
+
+        if (valA < valB) return ordenAscendente ? -1 : 1;
+        if (valA > valB) return ordenAscendente ? 1 : -1;
+        return 0;
+      });
+
+      renderizarTablaHistorico(datosFiltradosActuales);
     }
 
     // RENDERIZAR TABLA DE HISTÓRICO
@@ -672,7 +741,6 @@
       toolbar.style.display = selected.length > 0 ? 'flex' : 'none';
     }
 
-    // 1. CAMBIAR INDICADOR EN MASA
     async function cambiarIndicadorMasivo(nuevoIndicador) {
       const selectedBoxes = document.querySelectorAll('.row-check:checked');
       const ids = Array.from(selectedBoxes).map(cb => cb.value);
@@ -690,7 +758,6 @@
       }
     }
 
-    // 2. CAMBIAR FORMATO DE VALOR EN MASA (%, $, Número)
     async function cambiarFormatoMasivo(tipoFormato) {
       const selectedBoxes = document.querySelectorAll('.row-check:checked');
       if (selectedBoxes.length === 0) return;
@@ -715,7 +782,6 @@
       cargarDatosSupabase();
     }
 
-    // 3. ELIMINAR SELECCIONADOS
     async function eliminarSeleccionados() {
       const selectedBoxes = document.querySelectorAll('.row-check:checked');
       const idsToDelete = Array.from(selectedBoxes).map(cb => cb.value);
