@@ -676,22 +676,47 @@
 
     let datosOriginalesSupabase = [];
     let datosFiltradosActuales = [];
-    let moduloFiltroActivo = 'GENERAL'; // Controla el módulo seleccionado en el Sidebar
-    
+    let moduloFiltroActivo = 'GENERAL';
+
     let columnaOrden = 'created_at';
     let ordenAscendente = false;
 
     let chartInstances = {};
     let ordenGraficas = {};
 
+    // NORMALIZADOR ULTRA-ROBUSTO PARA BÚSQUEDAS DE MÓDULOS E INDICADORES
+    function normalizarTexto(txt) {
+      if (!txt) return '';
+      return String(txt)
+        .trim()
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9]/g, ""); // Remueve símbolos, espacios e invisibles
+    }
+
+    // EXTRACCIÓN Y LIMPIEZA DE NÚMEROS DESDE CADENAS CON COMAS O PUNTOS
+    function extraerNumeroLimpio(valStr) {
+      if (valStr === null || valStr === undefined) return 0;
+      let str = String(valStr).trim();
+      if (!str) return 0;
+
+      // Si tiene comas decimales europeas o mexicanas
+      let strNormalizado = str.replace(',', '.');
+      let numPuro = parseFloat(strNormalizado.replace(/[^0-9.-]+/g, ""));
+      return isNaN(numPuro) ? 0 : numPuro;
+    }
+
     function formatearValorLimpio(valStr) {
       if (!valStr) return '0';
       let str = String(valStr);
-      let numPuro = parseFloat(str.replace(/[^0-9.-]+/g, ""));
-      if (!isNaN(numPuro)) {
+      let numPuro = extraerNumeroLimpio(str);
+
+      if (numPuro !== 0 || str.includes('0')) {
         let numRedondeado = Math.round(numPuro * 100) / 100;
         if (str.includes('%')) return numRedondeado + '%';
         if (str.includes('$')) return '$' + numRedondeado.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        return String(numRedondeado);
       }
       return str;
     }
@@ -784,10 +809,11 @@
         const matchSuc = selSucursales.includes('TODAS') || (r.sucursal && selSucursales.includes(r.sucursal.trim().toUpperCase()));
         const matchInd = selIndicadores.includes('TODOS') || (r.modulo && selIndicadores.includes(r.modulo.trim()));
         
-        // FILTRADO POR NAVEGACIÓN LATERAL (MÓDULOS)
         let matchModuloSidebar = true;
         if (moduloFiltroActivo !== 'GENERAL') {
-          matchModuloSidebar = (r.modulo || '').toLowerCase().includes(moduloFiltroActivo.toLowerCase());
+          let modActivoNorm = normalizarTexto(moduloFiltroActivo);
+          let modRegNorm = normalizarTexto(r.modulo);
+          matchModuloSidebar = modRegNorm.includes(modActivoNorm);
         }
 
         return matchMes && matchSuc && matchInd && matchModuloSidebar;
@@ -865,12 +891,18 @@
     }
 
     function construirDatosGrafica(moduloNombre, campoAgrupacion) {
-      let filtrados = datosFiltradosActuales.filter(r => (r.modulo || 'Atención y Servicio').toLowerCase().includes(moduloNombre.toLowerCase()));
+      let modBuscado = normalizarTexto(moduloNombre);
+
+      let filtrados = datosFiltradosActuales.filter(r => {
+        let modReg = normalizarTexto(r.modulo);
+        return modReg.includes(modBuscado);
+      });
+
       let acumulador = {};
 
       filtrados.forEach(r => {
         let clave = (r[campoAgrupacion] || 'General').trim().toUpperCase();
-        let numPuro = parseFloat(String(r.valor || '0').replace(/[^0-9.-]+/g, "")) || 0;
+        let numPuro = extraerNumeroLimpio(r.valor);
         
         if (!acumulador[clave]) acumulador[clave] = { suma: 0, count: 0 };
         acumulador[clave].suma += numPuro;
@@ -896,11 +928,11 @@
       if (datosFiltradosActuales.length === 0) return;
 
       const config = [
-        { key: 'atencion_suc', canvas: 'chartAtencionSuc', label: 'Atención %', mod: 'Atención', field: 'sucursal', color: '#38bdf8' },
-        { key: 'atencion_mes', canvas: 'chartAtencionMes', label: 'Atención %', mod: 'Atención', field: 'mes', color: '#0284c7' },
+        { key: 'atencion_suc', canvas: 'chartAtencionSuc', label: 'Atención %', mod: 'Atencion', field: 'sucursal', color: '#38bdf8' },
+        { key: 'atencion_mes', canvas: 'chartAtencionMes', label: 'Atención %', mod: 'Atencion', field: 'mes', color: '#0284c7' },
         
-        { key: 'operacion_suc', canvas: 'chartOperacionSuc', label: 'Operación %', mod: 'Operación', field: 'sucursal', color: '#38bdf8' },
-        { key: 'operacion_mes', canvas: 'chartOperacionMes', label: 'Operación %', mod: 'Operación', field: 'mes', color: '#0284c7' },
+        { key: 'operacion_suc', canvas: 'chartOperacionSuc', label: 'Operación %', mod: 'Operacion', field: 'sucursal', color: '#38bdf8' },
+        { key: 'operacion_mes', canvas: 'chartOperacionMes', label: 'Operación %', mod: 'Operacion', field: 'mes', color: '#0284c7' },
 
         { key: 'vencidos_suc', canvas: 'chartVencidosSuc', label: 'Vencidos ($)', mod: 'Vencidos', field: 'sucursal', color: '#ef4444' },
         { key: 'vencidos_mes', canvas: 'chartVencidosMes', label: 'Vencidos ($)', mod: 'Vencidos', field: 'mes', color: '#dc2626' },
@@ -920,8 +952,8 @@
 
     function renderizarGraficasGeneralPorMes() {
       const listaIndicadores = [
-        { key: 'gen_atencion', canvas: 'chartGenAtencion', mod: 'Atención', color: '#0284c7' },
-        { key: 'gen_operacion', canvas: 'chartGenOperacion', mod: 'Operación', color: '#38bdf8' },
+        { key: 'gen_atencion', canvas: 'chartGenAtencion', mod: 'Atencion', color: '#0284c7' },
+        { key: 'gen_operacion', canvas: 'chartGenOperacion', mod: 'Operacion', color: '#38bdf8' },
         { key: 'gen_vencidos', canvas: 'chartGenVencidos', mod: 'Vencidos', color: '#ef4444' },
         { key: 'gen_merma', canvas: 'chartGenMerma', mod: 'Merma', color: '#f97316' },
         { key: 'gen_cctv', canvas: 'chartGenCCTV', mod: 'CCTV', color: '#10b981' }
@@ -985,8 +1017,8 @@
         let valB = b[columnaOrden] || '';
 
         if (columnaOrden === 'valor') {
-          valA = parseFloat(String(valA).replace(/[^0-9.-]+/g, "")) || 0;
-          valB = parseFloat(String(valB).replace(/[^0-9.-]+/g, "")) || 0;
+          valA = extraerNumeroLimpio(valA);
+          valB = extraerNumeroLimpio(valB);
         } else if (columnaOrden === 'created_at') {
           valA = new Date(valA).getTime() || 0;
           valB = new Date(valB).getTime() || 0;
@@ -1035,20 +1067,29 @@
       const grupos = {};
 
       data.forEach(function(r) {
-        const ind = r.modulo || 'Otros';
-        if (!grupos[ind]) {
-          grupos[ind] = { suma: 0, conteo: 0, esMoneda: false };
+        const indRaw = r.modulo || 'Otros';
+        let indNorm = normalizarTexto(indRaw);
+
+        // Agrupar nombres similares bajo la misma etiqueta estándar
+        let indKey = indRaw;
+        if (indNorm.includes('atencion')) indKey = 'Atención y Servicio';
+        else if (indNorm.includes('operacion')) indKey = 'Operación de Sucursales';
+        else if (indNorm.includes('vencidos')) indKey = 'Vencidos';
+        else if (indNorm.includes('merma')) indKey = 'Merma';
+        else if (indNorm.includes('cctv')) indKey = 'CCTV y Alarmas';
+
+        if (!grupos[indKey]) {
+          grupos[indKey] = { suma: 0, conteo: 0, esMoneda: false };
         }
 
-        let numStr = String(r.valor || '0').replace(/[^0-9.-]+/g, "");
-        let valNum = parseFloat(numStr) || 0;
+        let valNum = extraerNumeroLimpio(r.valor);
 
         if (String(r.valor).includes('$')) {
-          grupos[ind].esMoneda = true;
+          grupos[indKey].esMoneda = true;
         }
 
-        grupos[ind].suma += valNum;
-        grupos[ind].conteo += 1;
+        grupos[indKey].suma += valNum;
+        grupos[indKey].conteo += 1;
       });
 
       const tbodyConsolidado = document.getElementById('tabla-general-consolidada');
@@ -1065,7 +1106,9 @@
         let estatus = 'Bueno';
         let colorEstatus = '#10b981';
 
-        if (g.esMoneda || ind.toLowerCase().includes('vencidos') || ind.toLowerCase().includes('merma')) {
+        let indNormKey = normalizarTexto(ind);
+
+        if (g.esMoneda || indNormKey.includes('vencidos') || indNormKey.includes('merma')) {
           resultadoFormateado = '$ ' + g.suma.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
           if (g.suma > 50000) { estatus = 'Atención Requerida'; colorEstatus = '#ef4444'; }
         } else {
@@ -1122,8 +1165,7 @@
       if (selectedBoxes.length === 0) return;
 
       for (let cb of selectedBoxes) {
-        let valOriginal = String(cb.getAttribute('data-valor') || '0');
-        let numPuro = parseFloat(valOriginal.replace(/[^0-9.-]+/g, "")) || 0;
+        let numPuro = extraerNumeroLimpio(cb.getAttribute('data-valor'));
         let nuevoValor = '';
 
         if (tipoFormato === 'porcentaje') {
@@ -1213,9 +1255,9 @@
 
         const dataToInsert = rows.map(function(r) {
           let valRaw = String(r.Valor || r.valor || r.VALOR || '0');
-          let numVal = parseFloat(valRaw.replace(/[^0-9.-]+/g, ""));
+          let numVal = extraerNumeroLimpio(valRaw);
           
-          if (!isNaN(numVal)) {
+          if (numVal !== 0) {
             let numFixed = Math.round(numVal * 100) / 100;
             if (valRaw.includes('%')) valRaw = numFixed + '%';
             else if (valRaw.includes('$')) valRaw = '$' + numFixed;
