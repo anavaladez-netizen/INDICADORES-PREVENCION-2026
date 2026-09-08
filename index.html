@@ -228,19 +228,36 @@
     .btn-edit { background-color: var(--accent-blue); }
     .btn-delete { background-color: var(--danger-color); }
 
-    .btn-bulk-delete {
-      background-color: var(--danger-color);
-      color: white;
-      border: none;
-      padding: 8px 14px;
+    /* BARRA EDICION MULTIPLE */
+    .bulk-toolbar {
+      display: none;
+      background: #e0f2fe;
+      border: 1px solid #7dd3fc;
+      padding: 12px 15px;
       border-radius: 6px;
-      font-size: 0.8rem;
+      margin-bottom: 15px;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn-bulk-op {
+      border: none;
+      padding: 7px 12px;
+      border-radius: 6px;
+      font-size: 0.78rem;
       font-weight: bold;
       cursor: pointer;
-      display: none;
+      color: white;
+      display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 5px;
     }
+
+    .btn-op-blue { background-color: var(--accent-blue); }
+    .btn-op-green { background-color: var(--success-color); }
+    .btn-op-red { background-color: var(--danger-color); }
+    .btn-op-gray { background-color: #64748b; }
 
     /* MODAL */
     .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 200; justify-content: center; align-items: center; }
@@ -366,12 +383,37 @@
         <div class="dashboard-header"><h1 class="dashboard-title">Inventarios 2026</h1></div>
       </div>
 
-      <!-- HISTÓRICO DE SUPABASE CON SELECCIÓN MÚLTIPLE -->
+      <!-- HISTÓRICO CON HERRAMIENTAS DE EDICIÓN MASIVA -->
       <div style="margin-top: 40px; border-top: 2px solid var(--border-color); padding-top: 20px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-          <h3 style="color: var(--text-dark); font-size: 1rem;">Histórico de Capturas (Sincronizado con Supabase)</h3>
-          <button class="btn-bulk-delete" id="btn-eliminar-varios" onclick="eliminarSeleccionados()"><i class="fa-solid fa-trash"></i> Eliminar Seleccionados (<span id="count-selected">0</span>)</button>
+        <h3 style="color: var(--text-dark); font-size: 1rem; margin-bottom: 12px;">Histórico de Capturas (Sincronizado con Supabase)</h3>
+        
+        <!-- BARRA DE ACCIONES EN MASA -->
+        <div class="bulk-toolbar" id="bulk-toolbar">
+          <span style="font-weight: bold; font-size: 0.85rem; color: var(--accent-blue);">
+            <span id="count-selected">0</span> seleccionados:
+          </span>
+          
+          <button class="btn-bulk-op btn-op-blue" onclick="cambiarIndicadorMasivo('Atención y Servicio')">
+            <i class="fa-solid fa-users"></i> Asignar "Atención y Servicio"
+          </button>
+
+          <button class="btn-bulk-op btn-op-green" onclick="cambiarFormatoMasivo('porcentaje')">
+            <i class="fa-solid fa-percent"></i> Volver Porcentaje (%)
+          </button>
+
+          <button class="btn-bulk-op btn-op-green" onclick="cambiarFormatoMasivo('pesos')">
+            <i class="fa-solid fa-dollar-sign"></i> Volver Pesos ($)
+          </button>
+
+          <button class="btn-bulk-op btn-op-gray" onclick="cambiarFormatoMasivo('numero')">
+            <i class="fa-solid fa-hashtag"></i> Volver Número
+          </button>
+
+          <button class="btn-bulk-op btn-op-red" onclick="eliminarSeleccionados()">
+            <i class="fa-solid fa-trash"></i> Eliminar
+          </button>
         </div>
+
         <div class="table-responsive">
           <table class="table-custom">
             <thead>
@@ -480,7 +522,7 @@
       document.getElementById('modal-captura').classList.remove('active');
     }
 
-    // CARGAR DATOS DESDE SUPABASE Y GENERAR RESUMEN POR INDICADOR
+    // CARGAR DATOS DESDE SUPABASE Y GENERAR RESUMEN
     async function cargarDatosSupabase() {
       const res = await _supabase.from('registros').select('*').order('created_at', { ascending: false });
       const tbody = document.getElementById('tabla-supabase-historico');
@@ -512,7 +554,7 @@
       } else {
         tbody.innerHTML = data.map(function(r, index) {
           return '<tr>' +
-            '<td style="text-align:center;"><input type="checkbox" class="row-check" value="' + r.id + '" onchange="actualizarContadorSeleccionados()"></td>' +
+            '<td style="text-align:center;"><input type="checkbox" class="row-check" value="' + r.id + '" data-valor="' + (r.valor || '') + '" onchange="actualizarContadorSeleccionados()"></td>' +
             '<td>' + new Date(r.created_at).toLocaleDateString() + '</td>' +
             '<td>' + (r.modulo || 'Atención y Servicio') + '</td>' +
             '<td><b>' + (r.sucursal || 'General') + '</b></td>' +
@@ -529,11 +571,11 @@
       document.getElementById('check-all').checked = false;
       actualizarContadorSeleccionados();
 
-      // 2. CALCULAR Y RENDERIZAR CONSOLIDADO POR INDICADOR
+      // 2. CALCULAR CONSOLIDADO
       generarConsolidadoPorIndicador(data);
     }
 
-    // PROCESAR VALORES Y MOSTRAR PROMEDIOS / TOTALES POR INDICADOR
+    // PROCESAR VALORES Y MOSTRAR PROMEDIOS / TOTALES
     function generarConsolidadoPorIndicador(data) {
       const grupos = {};
 
@@ -569,11 +611,9 @@
         let colorEstatus = '#10b981';
 
         if (g.esMoneda || ind.toLowerCase().includes('vencidos') || ind.toLowerCase().includes('merma')) {
-          // Es Dinero -> Mostrar Suma Total
           resultadoFormateado = '$ ' + g.suma.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
           if (g.suma > 50000) { estatus = 'Atención Requerida'; colorEstatus = '#ef4444'; }
         } else {
-          // Es Porcentaje -> Mostrar Promedio
           let promedio = (g.suma / g.conteo).toFixed(2);
           resultadoFormateado = promedio + ' %';
           if (promedio < 70) { estatus = 'Crítico'; colorEstatus = '#ef4444'; }
@@ -590,7 +630,7 @@
       }).join('');
     }
 
-    // SELECCIÓN MÚLTIPLE Y ELIMINACIÓN MASIVA
+    // ACCIONES EN MASA Y CONTADORES
     function toggleSelectAll(source) {
       const checkboxes = document.querySelectorAll('.row-check');
       checkboxes.forEach(function(cb) { cb.checked = source.checked; });
@@ -599,17 +639,57 @@
 
     function actualizarContadorSeleccionados() {
       const selected = document.querySelectorAll('.row-check:checked');
-      const countBtn = document.getElementById('btn-eliminar-varios');
+      const toolbar = document.getElementById('bulk-toolbar');
       const countText = document.getElementById('count-selected');
 
       countText.innerText = selected.length;
-      if (selected.length > 0) {
-        countBtn.style.display = 'inline-flex';
-      } else {
-        countBtn.style.display = 'none';
+      toolbar.style.display = selected.length > 0 ? 'flex' : 'none';
+    }
+
+    // 1. CAMBIAR INDICADOR EN MASA
+    async function cambiarIndicadorMasivo(nuevoIndicador) {
+      const selectedBoxes = document.querySelectorAll('.row-check:checked');
+      const ids = Array.from(selectedBoxes).map(cb => cb.value);
+
+      if (ids.length === 0) return;
+
+      if (confirm('¿Deseas cambiar el indicador de ' + ids.length + ' registros a "' + nuevoIndicador + '"?')) {
+        const res = await _supabase.from('registros').update({ modulo: nuevoIndicador }).in('id', ids);
+        if (res.error) {
+          alert("Error al actualizar: " + res.error.message);
+        } else {
+          alert("¡Indicadores actualizados correctamente!");
+          cargarDatosSupabase();
+        }
       }
     }
 
+    // 2. CAMBIAR FORMATO DE VALOR EN MASA (%, $, Número)
+    async function cambiarFormatoMasivo(tipoFormato) {
+      const selectedBoxes = document.querySelectorAll('.row-check:checked');
+      if (selectedBoxes.length === 0) return;
+
+      for (let cb of selectedBoxes) {
+        let valOriginal = cb.getAttribute('data-valor') || '0';
+        let numPuro = parseFloat(valOriginal.replace(/[^0-9.-]+/g, "")) || 0;
+        let nuevoValor = '';
+
+        if (tipoFormato === 'porcentaje') {
+          nuevoValor = numPuro + '%';
+        } else if (tipoFormato === 'pesos') {
+          nuevoValor = '$' + numPuro.toLocaleString('es-MX', { minimumFractionDigits: 2 });
+        } else if (tipoFormato === 'numero') {
+          nuevoValor = String(numPuro);
+        }
+
+        await _supabase.from('registros').update({ valor: nuevoValor }).eq('id', cb.value);
+      }
+
+      alert("¡Formatos actualizados en " + selectedBoxes.length + " celda(s)!");
+      cargarDatosSupabase();
+    }
+
+    // 3. ELIMINAR SELECCIONADOS
     async function eliminarSeleccionados() {
       const selectedBoxes = document.querySelectorAll('.row-check:checked');
       const idsToDelete = Array.from(selectedBoxes).map(cb => cb.value);
