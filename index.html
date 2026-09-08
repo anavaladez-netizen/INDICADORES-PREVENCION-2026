@@ -36,36 +36,37 @@
       background-color: var(--bg-light);
       color: var(--text-dark);
       display: flex;
-      min-height: 100vh;
+      height: 100vh;
+      overflow: hidden;
     }
 
     /* SIDEBAR */
     .sidebar {
-      width: 240px;
+      width: 220px;
       background: var(--bg-white);
       border-right: 1px solid var(--border-color);
       display: flex;
       flex-direction: column;
-      padding: 20px 0;
+      padding: 15px 0;
       flex-shrink: 0;
     }
 
     .brand-logo {
-      padding: 0 20px 20px 20px;
-      font-size: 1.1rem;
+      padding: 0 15px 15px 15px;
+      font-size: 1rem;
       font-weight: 700;
       color: var(--accent-blue);
       border-bottom: 1px solid var(--border-color);
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
     }
 
-    .nav-list { list-style: none; margin-top: 15px; }
+    .nav-list { list-style: none; margin-top: 10px; }
 
     .nav-item {
-      padding: 14px 20px;
-      font-size: 0.8rem;
+      padding: 10px 15px;
+      font-size: 0.75rem;
       font-weight: 700;
       color: var(--text-dark);
       cursor: pointer;
@@ -75,7 +76,7 @@
       transition: all 0.2s ease;
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
     }
 
     .nav-item:hover { background-color: #f1f5f9; }
@@ -89,30 +90,33 @@
     /* MAIN */
     .main-wrapper {
       flex: 1;
-      padding: 30px;
+      padding: 15px;
       overflow-y: auto;
+      height: 100vh;
     }
 
     .dashboard-container {
       background: var(--bg-white);
       border: 1px solid var(--border-color);
       border-radius: 8px;
-      padding: 35px;
+      padding: 20px;
       box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-      min-height: 90vh;
+      min-height: calc(100vh - 30px);
+      display: flex;
+      flex-direction: column;
     }
 
     .dashboard-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 25px;
+      margin-bottom: 10px;
       border-bottom: 2px solid var(--border-color);
-      padding-bottom: 15px;
+      padding-bottom: 8px;
     }
 
     .dashboard-title {
-      font-size: 2rem;
+      font-size: 1.4rem;
       font-weight: 700;
       color: var(--accent-blue);
     }
@@ -121,59 +125,57 @@
     .filters-bar {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 15px;
-      margin-bottom: 30px;
+      gap: 10px;
+      margin-bottom: 15px;
       background: #f8fafc;
-      padding: 15px;
+      padding: 10px;
       border-radius: 6px;
       border: 1px solid var(--border-color);
     }
 
-    .filter-group { display: flex; flex-direction: column; gap: 5px; }
-    .filter-group label { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
+    .filter-group { display: flex; flex-direction: column; gap: 3px; }
+    .filter-group label { font-size: 0.65rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
 
     .filter-select {
       background: var(--bg-white);
       color: var(--text-dark);
       border: 1px solid var(--border-color);
-      padding: 10px;
-      border-radius: 6px;
+      padding: 6px;
+      border-radius: 4px;
       font-weight: 500;
-      font-size: 0.9rem;
+      font-size: 0.8rem;
       outline: none;
     }
 
-    /* GRID DE GRÁFICAS (2 POR PÁGINA) */
-    .charts-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 20px;
-      margin-top: 20px;
-      margin-bottom: 35px;
+    /* GRID DISPOSICIÓN VERTICAL */
+    .charts-grid-vertical {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 10px;
+      margin-bottom: 15px;
     }
 
-    @media (max-width: 1024px) {
-      .charts-grid { grid-template-columns: 1fr; }
-    }
-
-    .chart-card {
+    .chart-card-compact {
       border: 1px solid var(--border-color);
-      border-radius: 8px;
-      padding: 15px;
+      border-radius: 6px;
+      padding: 10px;
       background: var(--bg-white);
       display: flex;
       flex-direction: column;
+      height: 30vh;
+      min-height: 200px;
     }
 
     .chart-card-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 10px;
+      margin-bottom: 5px;
     }
 
     .chart-card-title {
-      font-size: 0.95rem;
+      font-size: 0.85rem;
       font-weight: 700;
       color: var(--accent-blue);
     }
@@ -182,8 +184,8 @@
       background: #f1f5f9;
       border: 1px solid var(--border-color);
       border-radius: 4px;
-      padding: 5px 10px;
-      font-size: 0.75rem;
+      padding: 3px 8px;
+      font-size: 0.7rem;
       font-weight: bold;
       cursor: pointer;
       color: var(--text-dark);
@@ -191,61 +193,60 @@
 
     .btn-sort-chart:hover { background: #e2e8f0; }
 
-    .chart-scroll-wrapper {
+    .chart-body-compact {
+      position: relative;
+      flex: 1;
       width: 100%;
-      overflow-x: auto;
+      height: 100%;
     }
 
-    .chart-body {
-      position: relative;
-      height: 380px;
-      min-width: 100%;
+    /* HOJA INICIO: GRID 5 GRÁFICAS */
+    .general-charts-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 10px;
+      margin-bottom: 15px;
     }
 
-    .chart-container-large {
-      position: relative;
-      width: 100%;
-      height: 400px;
-      margin-top: 20px;
-      margin-bottom: 35px;
-      padding: 15px;
+    .chart-card-general {
       border: 1px solid var(--border-color);
       border-radius: 6px;
+      padding: 8px;
       background: var(--bg-white);
+      height: 22vh;
+      min-height: 160px;
+      display: flex;
+      flex-direction: column;
     }
 
     /* TABLAS */
     .table-responsive {
       width: 100%;
       overflow-x: auto;
-      margin-bottom: 35px;
+      margin-bottom: 20px;
     }
 
     .table-custom {
       width: 100%;
       border-collapse: collapse;
-      font-size: 0.85rem;
+      font-size: 0.8rem;
     }
 
     .table-custom th {
       background-color: var(--table-header-bg);
       color: var(--bg-white);
-      padding: 12px;
+      padding: 8px;
       text-align: left;
       font-weight: 700;
       border: 1px solid var(--border-color);
     }
 
-    .table-custom th.sortable {
-      cursor: pointer;
-      user-select: none;
-      transition: background-color 0.2s;
-    }
-
+    .table-custom th.sortable { cursor: pointer; user-select: none; }
     .table-custom th.sortable:hover { background-color: #0284c7; }
 
     .table-custom td {
-      padding: 10px 12px;
+      padding: 6px 8px;
       border: 1px solid var(--border-color);
       color: var(--text-dark);
     }
@@ -258,10 +259,10 @@
     /* BOTONES FLOTANTES Y BARRA MASIVA */
     .action-buttons {
       position: fixed;
-      bottom: 25px;
-      right: 25px;
+      bottom: 15px;
+      right: 15px;
       display: flex;
-      gap: 12px;
+      gap: 10px;
       z-index: 100;
     }
 
@@ -269,28 +270,28 @@
       background: var(--accent-blue);
       color: white;
       border: none;
-      padding: 14px 22px;
-      border-radius: 30px;
+      padding: 10px 16px;
+      border-radius: 20px;
       font-weight: 700;
-      font-size: 0.85rem;
+      font-size: 0.75rem;
       cursor: pointer;
-      box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
+      box-shadow: 0 3px 8px rgba(2, 132, 199, 0.3);
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
     }
 
-    .btn-float.excel { background: var(--success-color); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); }
+    .btn-float.excel { background: var(--success-color); box-shadow: 0 3px 8px rgba(16, 185, 129, 0.3); }
 
     .btn-action-table {
       border: none;
-      padding: 5px 10px;
-      border-radius: 4px;
-      font-size: 0.75rem;
+      padding: 3px 6px;
+      border-radius: 3px;
+      font-size: 0.7rem;
       cursor: pointer;
       font-weight: bold;
       color: white;
-      margin-right: 4px;
+      margin-right: 2px;
     }
     .btn-edit { background-color: var(--accent-blue); }
     .btn-delete { background-color: var(--danger-color); }
@@ -299,25 +300,25 @@
       display: none;
       background: #e0f2fe;
       border: 1px solid #7dd3fc;
-      padding: 12px 15px;
+      padding: 8px 12px;
       border-radius: 6px;
-      margin-bottom: 15px;
+      margin-bottom: 10px;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
       flex-wrap: wrap;
     }
 
     .btn-bulk-op {
       border: none;
-      padding: 7px 12px;
-      border-radius: 6px;
-      font-size: 0.78rem;
+      padding: 5px 10px;
+      border-radius: 4px;
+      font-size: 0.7rem;
       font-weight: bold;
       cursor: pointer;
       color: white;
       display: flex;
       align-items: center;
-      gap: 5px;
+      gap: 4px;
     }
 
     .btn-op-blue { background-color: var(--accent-blue); }
@@ -328,14 +329,14 @@
     /* MODAL */
     .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 200; justify-content: center; align-items: center; }
     .modal.active { display: flex; }
-    .modal-content { background: white; border-radius: 8px; padding: 30px; width: 450px; border: 1px solid var(--border-color); }
-    .form-group { margin-bottom: 15px; }
-    .form-group label { display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 5px; color: var(--text-dark); }
-    .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; }
+    .modal-content { background: white; border-radius: 8px; padding: 25px; width: 400px; border: 1px solid var(--border-color); }
+    .form-group { margin-bottom: 12px; }
+    .form-group label { display: block; font-size: 0.75rem; font-weight: 700; margin-bottom: 4px; color: var(--text-dark); }
+    .form-group input, .form-group select { width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 0.85rem; }
     
-    .modal-footer { display: flex; gap: 10px; margin-top: 20px; }
-    .btn-submit { flex: 1; padding: 12px; background: var(--accent-blue); color: white; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; }
-    .btn-cancel { flex: 1; padding: 12px; background: #94a3b8; color: white; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; }
+    .modal-footer { display: flex; gap: 8px; margin-top: 15px; }
+    .btn-submit { flex: 1; padding: 10px; background: var(--accent-blue); color: white; border: none; border-radius: 4px; font-weight: 700; cursor: pointer; }
+    .btn-cancel { flex: 1; padding: 10px; background: #94a3b8; color: white; border: none; border-radius: 4px; font-weight: 700; cursor: pointer; }
   </style>
 </head>
 <body>
@@ -383,9 +384,38 @@
       </div>
 
       <!-- PÁGINAS / VISTAS -->
+      
+      <!-- GENERAL / INICIO -->
       <div id="page-general" class="section-page active">
         <div class="dashboard-header"><h1 class="dashboard-title">Consolidado General de Indicadores</h1></div>
-        <p style="margin-bottom: 15px; font-weight: 500; color: var(--text-muted);">Resumen General Promediado/Acumulado por Indicador:</p>
+        
+        <p style="margin-bottom: 8px; font-weight: 500; color: var(--text-muted); font-size: 0.8rem;">Evolución Mensual por Indicador:</p>
+        
+        <!-- GRID DE 5 GRÁFICAS POR INDICADOR DE TODOS LOS MESES -->
+        <div class="general-charts-grid">
+          <div class="chart-card-general">
+            <span class="chart-card-title">Atención y Servicio (%)</span>
+            <div class="chart-body-compact"><canvas id="chartGenAtencion"></canvas></div>
+          </div>
+          <div class="chart-card-general">
+            <span class="chart-card-title">Operación Sucursales (%)</span>
+            <div class="chart-body-compact"><canvas id="chartGenOperacion"></canvas></div>
+          </div>
+          <div class="chart-card-general">
+            <span class="chart-card-title">Control de Vencidos ($)</span>
+            <div class="chart-body-compact"><canvas id="chartGenVencidos"></canvas></div>
+          </div>
+          <div class="chart-card-general">
+            <span class="chart-card-title">Análisis de Merma ($)</span>
+            <div class="chart-body-compact"><canvas id="chartGenMerma"></canvas></div>
+          </div>
+          <div class="chart-card-general">
+            <span class="chart-card-title">CCTV y Alarmas (%)</span>
+            <div class="chart-body-compact"><canvas id="chartGenCCTV"></canvas></div>
+          </div>
+        </div>
+
+        <p style="margin-bottom: 8px; font-weight: 500; color: var(--text-muted); font-size: 0.8rem;">Resumen General Promediado/Acumulado por Indicador:</p>
         <div class="table-responsive">
           <table class="table-custom">
             <thead>
@@ -401,27 +431,25 @@
             </tbody>
           </table>
         </div>
-        <h3 style="margin-top: 25px; font-size: 1.1rem; color: var(--accent-blue);">Comparativo Consolidado Global</h3>
-        <div class="chart-container-large"><canvas id="chartGeneralConsolidado"></canvas></div>
       </div>
 
       <!-- ATENCIÓN Y SERVICIO -->
       <div id="page-atencion" class="section-page">
         <div class="dashboard-header"><h1 class="dashboard-title">Atención y Servicio al Cliente</h1></div>
-        <div class="charts-grid">
-          <div class="chart-card">
+        <div class="charts-grid-vertical">
+          <div class="chart-card-compact">
             <div class="chart-card-header">
               <span class="chart-card-title">Resultado por Sucursal</span>
               <button class="btn-sort-chart" onclick="toggleOrdenGrafica('atencion_suc')">Ordenar <i class="fa-solid fa-sort"></i></button>
             </div>
-            <div class="chart-scroll-wrapper"><div class="chart-body" id="container-atencion-suc"><canvas id="chartAtencionSuc"></canvas></div></div>
+            <div class="chart-body-compact"><canvas id="chartAtencionSuc"></canvas></div>
           </div>
-          <div class="chart-card">
+          <div class="chart-card-compact">
             <div class="chart-card-header">
               <span class="chart-card-title">Resultado por Mes</span>
               <button class="btn-sort-chart" onclick="toggleOrdenGrafica('atencion_mes')">Ordenar <i class="fa-solid fa-sort"></i></button>
             </div>
-            <div class="chart-scroll-wrapper"><div class="chart-body" id="container-atencion-mes"><canvas id="chartAtencionMes"></canvas></div></div>
+            <div class="chart-body-compact"><canvas id="chartAtencionMes"></canvas></div>
           </div>
         </div>
       </div>
@@ -429,20 +457,20 @@
       <!-- OPERACIÓN SUCURSALES -->
       <div id="page-operacion" class="section-page">
         <div class="dashboard-header"><h1 class="dashboard-title">Operación de Sucursales</h1></div>
-        <div class="charts-grid">
-          <div class="chart-card">
+        <div class="charts-grid-vertical">
+          <div class="chart-card-compact">
             <div class="chart-card-header">
               <span class="chart-card-title">Resultado por Sucursal</span>
               <button class="btn-sort-chart" onclick="toggleOrdenGrafica('operacion_suc')">Ordenar <i class="fa-solid fa-sort"></i></button>
             </div>
-            <div class="chart-scroll-wrapper"><div class="chart-body" id="container-operacion-suc"><canvas id="chartOperacionSuc"></canvas></div></div>
+            <div class="chart-body-compact"><canvas id="chartOperacionSuc"></canvas></div>
           </div>
-          <div class="chart-card">
+          <div class="chart-card-compact">
             <div class="chart-card-header">
               <span class="chart-card-title">Resultado por Mes</span>
               <button class="btn-sort-chart" onclick="toggleOrdenGrafica('operacion_mes')">Ordenar <i class="fa-solid fa-sort"></i></button>
             </div>
-            <div class="chart-scroll-wrapper"><div class="chart-body" id="container-operacion-mes"><canvas id="chartOperacionMes"></canvas></div></div>
+            <div class="chart-body-compact"><canvas id="chartOperacionMes"></canvas></div>
           </div>
         </div>
       </div>
@@ -450,20 +478,20 @@
       <!-- VENCIDOS -->
       <div id="page-vencidos" class="section-page">
         <div class="dashboard-header"><h1 class="dashboard-title">Control de Vencidos</h1></div>
-        <div class="charts-grid">
-          <div class="chart-card">
+        <div class="charts-grid-vertical">
+          <div class="chart-card-compact">
             <div class="chart-card-header">
               <span class="chart-card-title">Monto Vencido por Sucursal</span>
               <button class="btn-sort-chart" onclick="toggleOrdenGrafica('vencidos_suc')">Ordenar <i class="fa-solid fa-sort"></i></button>
             </div>
-            <div class="chart-scroll-wrapper"><div class="chart-body" id="container-vencidos-suc"><canvas id="chartVencidosSuc"></canvas></div></div>
+            <div class="chart-body-compact"><canvas id="chartVencidosSuc"></canvas></div>
           </div>
-          <div class="chart-card">
+          <div class="chart-card-compact">
             <div class="chart-card-header">
               <span class="chart-card-title">Monto Vencido por Mes</span>
               <button class="btn-sort-chart" onclick="toggleOrdenGrafica('vencidos_mes')">Ordenar <i class="fa-solid fa-sort"></i></button>
             </div>
-            <div class="chart-scroll-wrapper"><div class="chart-body" id="container-vencidos-mes"><canvas id="chartVencidosMes"></canvas></div></div>
+            <div class="chart-body-compact"><canvas id="chartVencidosMes"></canvas></div>
           </div>
         </div>
       </div>
@@ -471,20 +499,20 @@
       <!-- MERMA -->
       <div id="page-merma" class="section-page">
         <div class="dashboard-header"><h1 class="dashboard-title">Análisis de Merma</h1></div>
-        <div class="charts-grid">
-          <div class="chart-card">
+        <div class="charts-grid-vertical">
+          <div class="chart-card-compact">
             <div class="chart-card-header">
               <span class="chart-card-title">Monto Merma por Sucursal</span>
               <button class="btn-sort-chart" onclick="toggleOrdenGrafica('merma_suc')">Ordenar <i class="fa-solid fa-sort"></i></button>
             </div>
-            <div class="chart-scroll-wrapper"><div class="chart-body" id="container-merma-suc"><canvas id="chartMermaSuc"></canvas></div></div>
+            <div class="chart-body-compact"><canvas id="chartMermaSuc"></canvas></div>
           </div>
-          <div class="chart-card">
+          <div class="chart-card-compact">
             <div class="chart-card-header">
               <span class="chart-card-title">Monto Merma por Mes</span>
               <button class="btn-sort-chart" onclick="toggleOrdenGrafica('merma_mes')">Ordenar <i class="fa-solid fa-sort"></i></button>
             </div>
-            <div class="chart-scroll-wrapper"><div class="chart-body" id="container-merma-mes"><canvas id="chartMermaMes"></canvas></div></div>
+            <div class="chart-body-compact"><canvas id="chartMermaMes"></canvas></div>
           </div>
         </div>
       </div>
@@ -492,20 +520,20 @@
       <!-- CCTV Y ALARMAS -->
       <div id="page-cctv" class="section-page">
         <div class="dashboard-header"><h1 class="dashboard-title">CCTV y Alarmas</h1></div>
-        <div class="charts-grid">
-          <div class="chart-card">
+        <div class="charts-grid-vertical">
+          <div class="chart-card-compact">
             <div class="chart-card-header">
               <span class="chart-card-title">Cumplimiento por Sucursal</span>
               <button class="btn-sort-chart" onclick="toggleOrdenGrafica('cctv_suc')">Ordenar <i class="fa-solid fa-sort"></i></button>
             </div>
-            <div class="chart-scroll-wrapper"><div class="chart-body" id="container-cctv-suc"><canvas id="chartCCTVScu"></canvas></div></div>
+            <div class="chart-body-compact"><canvas id="chartCCTVSuc"></canvas></div>
           </div>
-          <div class="chart-card">
+          <div class="chart-card-compact">
             <div class="chart-card-header">
               <span class="chart-card-title">Cumplimiento por Mes</span>
               <button class="btn-sort-chart" onclick="toggleOrdenGrafica('cctv_mes')">Ordenar <i class="fa-solid fa-sort"></i></button>
             </div>
-            <div class="chart-scroll-wrapper"><div class="chart-body" id="container-cctv-mes"><canvas id="chartCCTVMes"></canvas></div></div>
+            <div class="chart-body-compact"><canvas id="chartCCTVMes"></canvas></div>
           </div>
         </div>
       </div>
@@ -515,15 +543,15 @@
       </div>
 
       <!-- HISTÓRICO CON EDICIÓN Y ORDENAMIENTO -->
-      <div style="margin-top: 40px; border-top: 2px solid var(--border-color); padding-top: 20px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-          <h3 style="color: var(--text-dark); font-size: 1rem;">Histórico de Capturas (Haz clic en los encabezados para ordenar)</h3>
-          <span style="font-size: 0.8rem; color: var(--text-muted);"><i class="fa-solid fa-sort"></i> Ordenar A-Z / 0-9</span>
+      <div style="margin-top: 20px; border-top: 2px solid var(--border-color); padding-top: 15px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <h3 style="color: var(--text-dark); font-size: 0.9rem;">Histórico de Capturas</h3>
+          <span style="font-size: 0.75rem; color: var(--text-muted);"><i class="fa-solid fa-sort"></i> Ordenar A-Z / 0-9</span>
         </div>
         
         <!-- TOOLBAR DE EDICIÓN MULTIPLE -->
         <div class="bulk-toolbar" id="bulk-toolbar">
-          <span style="font-weight: bold; font-size: 0.85rem; color: var(--accent-blue);">
+          <span style="font-weight: bold; font-size: 0.75rem; color: var(--accent-blue);">
             <span id="count-selected">0</span> seleccionados:
           </span>
           
@@ -543,14 +571,6 @@
             <i class="fa-solid fa-hashtag"></i> Número
           </button>
 
-          <button class="btn-bulk-op btn-op-gray" onclick="cambiarFormatoMasivo('mas_decimales')">
-            <i class="fa-solid fa-plus"></i> .00+ Decimales
-          </button>
-
-          <button class="btn-bulk-op btn-op-gray" onclick="cambiarFormatoMasivo('menos_decimales')">
-            <i class="fa-solid fa-minus"></i> .00- Decimales
-          </button>
-
           <button class="btn-bulk-op btn-op-red" onclick="eliminarSeleccionados()">
             <i class="fa-solid fa-trash"></i> Eliminar
           </button>
@@ -560,13 +580,13 @@
           <table class="table-custom">
             <thead>
               <tr>
-                <th style="width: 40px; text-align: center;"><input type="checkbox" id="check-all" onchange="toggleSelectAll(this)"></th>
+                <th style="width: 30px; text-align: center;"><input type="checkbox" id="check-all" onchange="toggleSelectAll(this)"></th>
                 <th class="sortable" onclick="ordenarTabla('created_at')">Fecha Registro <span id="sort-created_at">↕</span></th>
                 <th class="sortable" onclick="ordenarTabla('modulo')">Módulo / Indicador <span id="sort-modulo">↕</span></th>
                 <th class="sortable" onclick="ordenarTabla('sucursal')">Sucursal <span id="sort-sucursal">↕</span></th>
                 <th class="sortable" onclick="ordenarTabla('mes')">Mes <span id="sort-mes">↕</span></th>
                 <th class="sortable" onclick="ordenarTabla('valor')">Valor Capturado <span id="sort-valor">↕</span></th>
-                <th style="width: 120px;">Acciones</th>
+                <th style="width: 80px;">Acciones</th>
               </tr>
             </thead>
             <tbody id="tabla-supabase-historico">
@@ -590,7 +610,7 @@
   <!-- MODAL DE CAPTURA -->
   <div class="modal" id="modal-captura">
     <div class="modal-content">
-      <h3 style="margin-bottom: 20px; color: var(--accent-blue);" id="modal-titulo">Nuevo Registro de Indicador</h3>
+      <h3 style="margin-bottom: 15px; color: var(--accent-blue);" id="modal-titulo">Nuevo Registro de Indicador</h3>
       <form onsubmit="guardarEnSupabase(event)">
         <input type="hidden" id="edit-id" value="">
         <div class="form-group">
@@ -649,7 +669,6 @@
     let columnaOrden = 'created_at';
     let ordenAscendente = false;
 
-    // ALMACENAR INSTANCIAS DE GRÁFICAS Y DIRECCIÓN DE ORDENAMIENTO DE BARRAS
     let chartInstances = {};
     let ordenGraficas = {};
 
@@ -743,10 +762,10 @@
       ejecutarOrdenamiento();
       generarConsolidadoPorIndicador(datosFiltradosActuales);
       actualizarTodasLasGraficas();
+      renderizarGraficasGeneralPorMes();
     }
 
-    // ORDENAR Y RENDERIZAR GRÁFICAS DE BARRAS DINÁMICAMENTE
-    function renderGraficaDinamica(chartKey, canvasId, containerId, labelDataset, labels, values, color) {
+    function renderGraficaDinamica(chartKey, canvasId, labelDataset, labels, values, color) {
       if (chartInstances[chartKey]) {
         chartInstances[chartKey].destroy();
       }
@@ -758,13 +777,6 @@
 
       let sortedLabels = indices.map(i => labels[i]);
       let sortedValues = indices.map(i => values[i]);
-
-      const container = document.getElementById(containerId);
-      if (sortedLabels.length > 8) {
-        container.style.width = (sortedLabels.length * 50) + 'px';
-      } else {
-        container.style.width = '100%';
-      }
 
       const ctx = document.getElementById(canvasId).getContext('2d');
       chartInstances[chartKey] = new Chart(ctx, {
@@ -782,8 +794,8 @@
           maintainAspectRatio: false,
           plugins: { legend: { display: false } },
           scales: {
-            y: { grid: { color: '#e2e8f0' }, beginAtZero: true },
-            x: { grid: { display: false }, ticks: { font: { size: 10 } } }
+            y: { grid: { color: '#e2e8f0' }, beginAtZero: true, ticks: { font: { size: 9 } } },
+            x: { grid: { display: false }, ticks: { font: { size: 9 }, maxRotation: 45, minRotation: 0 } }
           }
         }
       });
@@ -808,8 +820,13 @@
       });
 
       let labels = Object.keys(acumulador);
+      if (campoAgrupacion === 'mes') {
+        labels.sort();
+      }
+
       let values = labels.map(k => {
-        return moduloNombre.includes('vencidos') || moduloNombre.includes('merma') 
+        let modLower = moduloNombre.toLowerCase();
+        return modLower.includes('vencidos') || modLower.includes('merma') 
           ? acumulador[k].suma 
           : parseFloat((acumulador[k].suma / acumulador[k].count).toFixed(2));
       });
@@ -821,25 +838,65 @@
       if (datosFiltradosActuales.length === 0) return;
 
       const config = [
-        { key: 'atencion_suc', canvas: 'chartAtencionSuc', container: 'container-atencion-suc', label: 'Atención %', mod: 'Atención', field: 'sucursal', color: '#38bdf8' },
-        { key: 'atencion_mes', canvas: 'chartAtencionMes', container: 'container-atencion-mes', label: 'Atención %', mod: 'Atención', field: 'mes', color: '#0284c7' },
+        { key: 'atencion_suc', canvas: 'chartAtencionSuc', label: 'Atención %', mod: 'Atención', field: 'sucursal', color: '#38bdf8' },
+        { key: 'atencion_mes', canvas: 'chartAtencionMes', label: 'Atención %', mod: 'Atención', field: 'mes', color: '#0284c7' },
         
-        { key: 'operacion_suc', canvas: 'chartOperacionSuc', container: 'container-operacion-suc', label: 'Operación %', mod: 'Operación', field: 'sucursal', color: '#38bdf8' },
-        { key: 'operacion_mes', canvas: 'chartOperacionMes', container: 'container-operacion-mes', label: 'Operación %', mod: 'Operación', field: 'mes', color: '#0284c7' },
+        { key: 'operacion_suc', canvas: 'chartOperacionSuc', label: 'Operación %', mod: 'Operación', field: 'sucursal', color: '#38bdf8' },
+        { key: 'operacion_mes', canvas: 'chartOperacionMes', label: 'Operación %', mod: 'Operación', field: 'mes', color: '#0284c7' },
 
-        { key: 'vencidos_suc', canvas: 'chartVencidosSuc', container: 'container-vencidos-suc', label: 'Vencidos ($)', mod: 'Vencidos', field: 'sucursal', color: '#ef4444' },
-        { key: 'vencidos_mes', canvas: 'chartVencidosMes', container: 'container-vencidos-mes', label: 'Vencidos ($)', mod: 'Vencidos', field: 'mes', color: '#dc2626' },
+        { key: 'vencidos_suc', canvas: 'chartVencidosSuc', label: 'Vencidos ($)', mod: 'Vencidos', field: 'sucursal', color: '#ef4444' },
+        { key: 'vencidos_mes', canvas: 'chartVencidosMes', label: 'Vencidos ($)', mod: 'Vencidos', field: 'mes', color: '#dc2626' },
 
-        { key: 'merma_suc', canvas: 'chartMermaSuc', container: 'container-merma-suc', label: 'Merma ($)', mod: 'Merma', field: 'sucursal', color: '#f97316' },
-        { key: 'merma_mes', canvas: 'chartMermaMes', container: 'container-merma-mes', label: 'Merma ($)', mod: 'Merma', field: 'mes', color: '#ea580c' },
+        { key: 'merma_suc', canvas: 'chartMermaSuc', label: 'Merma ($)', mod: 'Merma', field: 'sucursal', color: '#f97316' },
+        { key: 'merma_mes', canvas: 'chartMermaMes', label: 'Merma ($)', mod: 'Merma', field: 'mes', color: '#ea580c' },
 
-        { key: 'cctv_suc', canvas: 'chartCCTVScu', container: 'container-cctv-suc', label: 'CCTV %', mod: 'CCTV', field: 'sucursal', color: '#0284c7' },
-        { key: 'cctv_mes', canvas: 'chartCCTVMes', container: 'container-cctv-mes', label: 'CCTV %', mod: 'CCTV', field: 'mes', color: '#0369a1' }
+        { key: 'cctv_suc', canvas: 'chartCCTVSuc', label: 'CCTV %', mod: 'CCTV', field: 'sucursal', color: '#0284c7' },
+        { key: 'cctv_mes', canvas: 'chartCCTVMes', label: 'CCTV %', mod: 'CCTV', field: 'mes', color: '#0369a1' }
       ];
 
       config.forEach(c => {
         let d = construirDatosGrafica(c.mod, c.field);
-        renderGraficaDinamica(c.key, c.canvas, c.container, c.label, d.labels, d.values, c.color);
+        renderGraficaDinamica(c.key, c.canvas, c.label, d.labels, d.values, c.color);
+      });
+    }
+
+    // RENDERIZADO DE LAS 5 GRÁFICAS DEL GENERAL POR MES
+    function renderizarGraficasGeneralPorMes() {
+      const listaIndicadores = [
+        { key: 'gen_atencion', canvas: 'chartGenAtencion', mod: 'Atención', color: '#0284c7' },
+        { key: 'gen_operacion', canvas: 'chartGenOperacion', mod: 'Operación', color: '#38bdf8' },
+        { key: 'gen_vencidos', canvas: 'chartGenVencidos', mod: 'Vencidos', color: '#ef4444' },
+        { key: 'gen_merma', canvas: 'chartGenMerma', mod: 'Merma', color: '#f97316' },
+        { key: 'gen_cctv', canvas: 'chartGenCCTV', mod: 'CCTV', color: '#10b981' }
+      ];
+
+      listaIndicadores.forEach(item => {
+        let d = construirDatosGrafica(item.mod, 'mes');
+        
+        if (chartInstances[item.key]) {
+          chartInstances[item.key].destroy();
+        }
+
+        const ctx = document.getElementById(item.canvas).getContext('2d');
+        chartInstances[item.key] = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: d.labels,
+            datasets: [{
+              data: d.values,
+              backgroundColor: item.color
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+              y: { grid: { color: '#f1f5f9' }, beginAtZero: true, ticks: { font: { size: 8 } } },
+              x: { grid: { display: false }, ticks: { font: { size: 8 }, maxRotation: 45, minRotation: 0 } }
+            }
+          }
+        });
       });
     }
 
@@ -964,7 +1021,7 @@
         return '<tr>' +
           '<td><b>' + ind + '</b></td>' +
           '<td>' + g.conteo + ' registros</td>' +
-          '<td><b style="font-size:1rem; color:var(--accent-blue);">' + resultadoFormateado + '</b></td>' +
+          '<td><b style="font-size:0.9rem; color:var(--accent-blue);">' + resultadoFormateado + '</b></td>' +
           '<td><span style="color:' + colorEstatus + '; font-weight:bold;">' + estatus + '</span></td>' +
         '</tr>';
       }).join('');
@@ -1007,7 +1064,7 @@
       if (selectedBoxes.length === 0) return;
 
       for (let cb of selectedBoxes) {
-        let valOriginal = cb.getAttribute('data-valor') || '0';
+        let valOriginal = String(cb.getAttribute('data-valor') || '0');
         let numPuro = parseFloat(valOriginal.replace(/[^0-9.-]+/g, "")) || 0;
         let nuevoValor = '';
 
@@ -1017,26 +1074,12 @@
           nuevoValor = '$' + numPuro.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         } else if (tipoFormato === 'numero') {
           nuevoValor = String(Number(numPuro.toFixed(2)));
-        } else if (tipoFormato === 'mas_decimales' || tipoFormato === 'menos_decimales') {
-          let partes = String(valOriginal).replace(/[%$]/g, '').trim().split('.');
-          let decimalesActuales = partes[1] ? partes[1].length : 0;
-          let nuevosDecimales = tipoFormato === 'mas_decimales' ? decimalesActuales + 1 : Math.max(0, decimalesActuales - 1);
-          
-          let numFormateado = numPuro.toFixed(nuevosDecimales);
-
-          if (String(valOriginal).includes('%')) {
-            nuevoValor = numFormateado + '%';
-          } else if (String(valOriginal).includes('$')) {
-            nuevoValor = '$' + parseFloat(numFormateado).toLocaleString('es-MX', { minimumFractionDigits: nuevosDecimales, maximumFractionDigits: nuevosDecimales });
-          } else {
-            nuevoValor = numFormateado;
-          }
         }
 
         await _supabase.from('registros').update({ valor: nuevoValor }).eq('id', cb.value);
       }
 
-      alert("¡Formatos/Decimales actualizados!");
+      alert("¡Formatos actualizados!");
       cargarDatosSupabase();
     }
 
@@ -1141,24 +1184,6 @@
 
     window.onload = function() {
       cargarDatosSupabase();
-
-      // GRÁFICA LINEAL CONSOLIDADA DE LA HOJA GENERAL
-      new Chart(document.getElementById('chartGeneralConsolidado'), {
-        type: 'line',
-        data: {
-          labels: ['01. ENERO', '02. FEBRERO', '03. MARZO', '04. ABRIL', '05. MAYO'],
-          datasets: [
-            { label: 'Operación (%)', data: [85, 88, 90, 89, 93], borderColor: '#0284c7', backgroundColor: 'rgba(2, 132, 199, 0.1)', fill: true },
-            { label: 'Atención (%)', data: [70, 72, 75, 74, 78], borderColor: '#38bdf8', backgroundColor: 'transparent' }
-          ]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: { legend: { position: 'top' } },
-          scales: { y: { grid: { color: '#e2e8f0' } }, x: { grid: { display: false } } }
-        }
-      });
     };
   </script>
 </body>
