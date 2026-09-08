@@ -39,7 +39,7 @@
       min-height: 100vh;
     }
 
-    /* SIDEBAR BLANCO */
+    /* SIDEBAR */
     .sidebar {
       width: 240px;
       background: var(--bg-white);
@@ -86,7 +86,7 @@
       border-left: 4px solid var(--accent-blue);
     }
 
-    /* CONTENEDOR PRINCIPAL BLANCO */
+    /* MAIN */
     .main-wrapper {
       flex: 1;
       padding: 30px;
@@ -117,7 +117,7 @@
       color: var(--accent-blue);
     }
 
-    /* FILTROS SUPERIORES */
+    /* FILTROS */
     .filters-bar {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -143,7 +143,7 @@
       outline: none;
     }
 
-    /* TABLAS ESTILO BLANCO */
+    /* TABLAS */
     .table-responsive {
       width: 100%;
       overflow-x: auto;
@@ -173,7 +173,6 @@
 
     .table-custom tr:nth-child(even) { background-color: #f8fafc; }
 
-    /* CONTENEDOR DE GRÁFICAS AMPLIAS */
     .chart-container-large {
       position: relative;
       width: 100%;
@@ -189,7 +188,7 @@
     .section-page { display: none; }
     .section-page.active { display: block; }
 
-    /* BOTONES ACCION Y FLOTANTES */
+    /* BOTONES ACCION */
     .action-buttons {
       position: fixed;
       bottom: 25px;
@@ -229,7 +228,7 @@
     .btn-edit { background-color: var(--accent-blue); }
     .btn-delete { background-color: var(--danger-color); }
 
-    /* MODAL Y FORMULARIO */
+    /* MODAL */
     .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 200; justify-content: center; align-items: center; }
     .modal.active { display: flex; }
     .modal-content { background: white; border-radius: 8px; padding: 30px; width: 450px; border: 1px solid var(--border-color); }
@@ -267,7 +266,7 @@
   <main class="main-wrapper">
     <div class="dashboard-container">
 
-      <!-- FILTROS PRINCIPALES -->
+      <!-- FILTROS -->
       <div class="filters-bar">
         <div class="filter-group">
           <label>Filtrar por Mes</label>
@@ -306,14 +305,10 @@
         </div>
       </div>
 
-      <!-- 1. PESTAÑA: GENERAL (CONSOLIDA TODA LA INFORMACIÓN) -->
+      <!-- SECCIONES -->
       <div id="page-general" class="section-page active">
-        <div class="dashboard-header">
-          <h1 class="dashboard-title">Consolidado General de Indicadores</h1>
-        </div>
-
-        <p style="margin-bottom: 15px; font-weight: 500; color: var(--text-muted);">Muestreo integrado por Sucursal, Mes e Indicador (Filtrable en tiempo real):</p>
-        
+        <div class="dashboard-header"><h1 class="dashboard-title">Consolidado General de Indicadores</h1></div>
+        <p style="margin-bottom: 15px; font-weight: 500; color: var(--text-muted);">Muestreo integrado por Sucursal, Mes e Indicador:</p>
         <div class="table-responsive">
           <table class="table-custom">
             <thead>
@@ -328,14 +323,10 @@
             <tbody id="tabla-general-consolidada"></tbody>
           </table>
         </div>
-
         <h3 style="margin-top: 25px; font-size: 1.1rem; color: var(--accent-blue);">Comparativo Consolidado Global</h3>
-        <div class="chart-container-large">
-          <canvas id="chartGeneralConsolidado"></canvas>
-        </div>
+        <div class="chart-container-large"><canvas id="chartGeneralConsolidado"></canvas></div>
       </div>
 
-      <!-- PESTAÑAS SECUNDARIAS -->
       <div id="page-atencion" class="section-page">
         <div class="dashboard-header"><h1 class="dashboard-title">Atención y Servicio al Cliente</h1></div>
         <div class="chart-container-large"><canvas id="chartAtencionAmplia"></canvas></div>
@@ -365,7 +356,7 @@
         <div class="dashboard-header"><h1 class="dashboard-title">Inventarios 2026</h1></div>
       </div>
 
-      <!-- REGISTROS GUARDADOS EN SUPABASE CON EDICIÓN Y BORRADO -->
+      <!-- HISTÓRICO DE SUPABASE -->
       <div style="margin-top: 40px; border-top: 2px solid var(--border-color); padding-top: 20px;">
         <h3 style="color: var(--text-dark); margin-bottom: 12px; font-size: 1rem;">Histórico de Capturas (Sincronizado con Supabase)</h3>
         <div class="table-responsive">
@@ -375,12 +366,13 @@
                 <th>Fecha Registro</th>
                 <th>Módulo / Indicador</th>
                 <th>Sucursal</th>
+                <th>Mes</th>
                 <th>Valor Capturado</th>
                 <th style="width: 140px;">Acciones</th>
               </tr>
             </thead>
             <tbody id="tabla-supabase-historico">
-              <tr><td colspan="5">Cargando registros...</td></tr>
+              <tr><td colspan="6">Cargando registros...</td></tr>
             </tbody>
           </table>
         </div>
@@ -395,10 +387,9 @@
     <button class="btn-float" onclick="abrirModal()"><i class="fa-solid fa-plus"></i> CAPTURAR REGISTRO</button>
   </div>
 
-  <!-- INPUT OCULTO PARA SUBIR EXCEL -->
   <input type="file" id="input-excel-file" accept=".xlsx, .xls" style="display: none;" onchange="procesarExcel(event)">
 
-  <!-- MODAL DE CREACIÓN Y EDICIÓN -->
+  <!-- MODAL -->
   <div class="modal" id="modal-captura">
     <div class="modal-content">
       <h3 style="margin-bottom: 20px; color: var(--accent-blue);" id="modal-titulo">Nuevo Registro de Indicador</h3>
@@ -417,6 +408,16 @@
         <div class="form-group">
           <label>Sucursal</label>
           <input type="text" id="input-sucursal" placeholder="Ej. CUAUHTEMOC" required>
+        </div>
+        <div class="form-group">
+          <label>Mes</label>
+          <select id="input-mes">
+            <option value="01. ENERO">01. ENERO</option>
+            <option value="02. FEBRERO">02. FEBRERO</option>
+            <option value="03. MARZO">03. MARZO</option>
+            <option value="04. ABRIL">04. ABRIL</option>
+            <option value="05. MAYO">05. MAYO</option>
+          </select>
         </div>
         <div class="form-group">
           <label>Valor / Resultado</label>
@@ -440,28 +441,28 @@
       { sucursal: 'OCAMPO', mes: '05. MAYO', indicador: 'CCTV y Alarmas', valor: '98.50 %', estatus: 'Excelente' }
     ];
 
-    // SUPABASE CLIENT
+    // CONFIGURACIÓN DE SUPABASE CON TU CLAVE DE API ACTUALIZADA
     const SUPABASE_URL = "https://oussvhvomwrndtufzfih.supabase.co";
-    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im91c3N2aHZvbXdybmR0dWZ6ZmloIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY3MzAwMjcsImV4cCI6MjEwMjMwNjAyN30.2zF0BxBxuz7xr_lSVlcB6eGAZqn6_e_0cL7zBJqCaqc";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im91c3N2aHZvbXdybmR0dWZ6ZmloIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY3MzAwMjcsImV4cCI6MjEwMjMwNjAyN30.2zF0BgBxuz7xr_lSVlcB6eGAZqn6_e_0cL7zBJqCaqc";
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     let datosHistoricosGlobal = [];
 
     function switchTab(pageId, element) {
-      document.querySelectorAll('.section-page').forEach(p => p.classList.remove('active'));
-      document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-      document.getElementById(`page-${pageId}`).classList.add('active');
-      if(element) element.classList.add('active');
+      document.querySelectorAll('.section-page').forEach(function(p) { p.classList.remove('active'); });
+      document.querySelectorAll('.nav-item').forEach(function(i) { i.classList.remove('active'); });
+      document.getElementById('page-' + pageId).classList.add('active');
+      if (element) { element.classList.add('active'); }
     }
 
-    /* MANEJO DEL MODAL (CANCELAR / EDICION) */
-    function abrirModal(editItem = null) {
+    function abrirModal(editItem) {
       if (editItem) {
         document.getElementById('modal-titulo').innerText = 'Editar Registro';
         document.getElementById('edit-id').value = editItem.id;
-        document.getElementById('input-modulo').value = editItem.modulo;
-        document.getElementById('input-sucursal').value = editItem.sucursal;
-        document.getElementById('input-valor').value = editItem.valor;
+        document.getElementById('input-modulo').value = editItem.modulo || 'Atención y Servicio';
+        document.getElementById('input-sucursal').value = editItem.sucursal || '';
+        document.getElementById('input-mes').value = editItem.mes || '01. ENERO';
+        document.getElementById('input-valor').value = editItem.valor || '';
       } else {
         document.getElementById('modal-titulo').innerText = 'Nuevo Registro de Indicador';
         document.getElementById('edit-id').value = '';
@@ -480,7 +481,7 @@
       const fSuc = document.getElementById('filter-sucursal').value;
       const fInd = document.getElementById('filter-indicador').value;
 
-      const filtrados = baseDatosConsolidada.filter(item => {
+      const filtrados = baseDatosConsolidada.filter(function(item) {
         const matchMes = (fMes === 'TODOS' || item.mes === fMes);
         const matchSuc = (fSuc === 'TODAS' || item.sucursal === fSuc);
         const matchInd = (fInd === 'TODOS' || item.indicador === fInd);
@@ -496,33 +497,31 @@
         tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No hay coincidencias.</td></tr>';
         return;
       }
-      tbody.innerHTML = datos.map(row => `
-        <tr>
-          <td><b>${row.sucursal}</b></td>
-          <td>${row.mes}</td>
-          <td>${row.indicador}</td>
-          <td><b>${row.valor}</b></td>
-          <td><span style="color: ${row.estatus==='Crítico'?'#ef4444':'#0284c7'}; font-weight:bold;">${row.estatus}</span></td>
-        </tr>
-      `).join('');
+      tbody.innerHTML = datos.map(function(row) {
+        return '<tr>' +
+          '<td><b>' + row.sucursal + '</b></td>' +
+          '<td>' + row.mes + '</td>' +
+          '<td>' + row.indicador + '</td>' +
+          '<td><b>' + row.valor + '</b></td>' +
+          '<td><span style="color: ' + (row.estatus === 'Crítico' ? '#ef4444' : '#0284c7') + '; font-weight:bold;">' + row.estatus + '</span></td>' +
+        '</tr>';
+      }).join('');
     }
 
-    /* CRUD SUPABASE: GUARDAR, EDITAR Y ELIMINAR */
     async function guardarEnSupabase(e) {
       e.preventDefault();
       const id = document.getElementById('edit-id').value;
       const modulo = document.getElementById('input-modulo').value;
       const sucursal = document.getElementById('input-sucursal').value;
+      const mes = document.getElementById('input-mes').value;
       const valor = document.getElementById('input-valor').value;
 
       if (id) {
-        // Editar
-        const { error } = await _supabase.from('registros').update({ modulo, sucursal, valor }).eq('id', id);
-        if (error) alert("Error actualizando: " + error.message);
+        const res = await _supabase.from('registros').update({ modulo: modulo, sucursal: sucursal, mes: mes, valor: valor }).eq('id', id);
+        if (res.error) { alert("Error actualizando: " + res.error.message); }
       } else {
-        // Crear
-        const { error } = await _supabase.from('registros').insert([{ modulo, sucursal, valor }]);
-        if (error) alert("Error guardando: " + error.message);
+        const res = await _supabase.from('registros').insert([{ modulo: modulo, sucursal: sucursal, mes: mes, valor: valor }]);
+        if (res.error) { alert("Error guardando: " + res.error.message); }
       }
 
       cerrarModal();
@@ -531,32 +530,33 @@
 
     async function eliminarRegistro(id) {
       if (confirm('¿Estás seguro de que deseas eliminar este registro?')) {
-        const { error } = await _supabase.from('registros').delete().eq('id', id);
-        if (error) alert("Error al eliminar: " + error.message);
-        else cargarDatosSupabase();
+        const res = await _supabase.from('registros').delete().eq('id', id);
+        if (res.error) { alert("Error al eliminar: " + res.error.message); }
+        else { cargarDatosSupabase(); }
       }
     }
 
     async function cargarDatosSupabase() {
-      const { data, error } = await _supabase.from('registros').select('*').order('created_at', { ascending: false });
+      const res = await _supabase.from('registros').select('*').order('created_at', { ascending: false });
       const tbody = document.getElementById('tabla-supabase-historico');
       
-      if (error) { tbody.innerHTML = `<tr><td colspan="5" style="color:red;">Error de conexión.</td></tr>`; return; }
-      if (!data || data.length === 0) { tbody.innerHTML = '<tr><td colspan="5">No hay capturas registradas aún.</td></tr>'; return; }
+      if (res.error) { tbody.innerHTML = '<tr><td colspan="6" style="color:red;">Error de API Key o conexión: ' + res.error.message + '</td></tr>'; return; }
+      if (!res.data || res.data.length === 0) { tbody.innerHTML = '<tr><td colspan="6">No hay capturas registradas aún.</td></tr>'; return; }
 
-      datosHistoricosGlobal = data;
-      tbody.innerHTML = data.map((r, index) => `
-        <tr>
-          <td>${new Date(r.created_at).toLocaleDateString()}</td>
-          <td>${r.modulo}</td>
-          <td><b>${r.sucursal}</b></td>
-          <td><b>${r.valor}</b></td>
-          <td>
-            <button class="btn-action-table btn-edit" onclick="prepararEdicion(${index})"><i class="fa-solid fa-pen"></i></button>
-            <button class="btn-action-table btn-delete" onclick="eliminarRegistro(${r.id})"><i class="fa-solid fa-trash"></i></button>
-          </td>
-        </tr>
-      `).join('');
+      datosHistoricosGlobal = res.data;
+      tbody.innerHTML = res.data.map(function(r, index) {
+        return '<tr>' +
+          '<td>' + new Date(r.created_at).toLocaleDateString() + '</td>' +
+          '<td>' + (r.modulo || 'Atención y Servicio') + '</td>' +
+          '<td><b>' + (r.sucursal || 'General') + '</b></td>' +
+          '<td>' + (r.mes || '01. ENERO') + '</td>' +
+          '<td><b>' + (r.valor || '') + '</b></td>' +
+          '<td>' +
+            '<button class="btn-action-table btn-edit" onclick="prepararEdicion(' + index + ')"><i class="fa-solid fa-pen"></i></button>' +
+            '<button class="btn-action-table btn-delete" onclick="eliminarRegistro(' + r.id + ')"><i class="fa-solid fa-trash"></i></button>' +
+          '</td>' +
+        '</tr>';
+      }).join('');
     }
 
     function prepararEdicion(index) {
@@ -564,7 +564,6 @@
       abrirModal(item);
     }
 
-    /* CARGA MASIVA DESDE EXCEL */
     function procesarExcel(e) {
       const file = e.target.files[0];
       if (!file) return;
@@ -576,7 +575,6 @@
         const sheetName = workbook.SheetNames[0];
         const sheet = workbook.Sheets[sheetName];
         
-        // Convertir Excel a JSON
         const rows = XLSX.utils.sheet_to_json(sheet);
         
         if (rows.length === 0) {
@@ -584,28 +582,27 @@
           return;
         }
 
-        // Mapear los campos esperados del Excel
-        // Se espera que en Excel las columnas sean: Modulo, Sucursal, Valor
-        const dataToInsert = rows.map(r => ({
-          modulo: r.Modulo || r.modulo || r.INDICADOR || 'Atención y Servicio',
-          sucursal: r.Sucursal || r.sucursal || r.SUCURSAL || 'General',
-          mes: r.Mes || r.mes || r.MES || 'TODOS'
-          valor: String(r.Valor || r.valor || r.VALOR || '0')
-        }));
+        const dataToInsert = rows.map(function(r) {
+          return {
+            modulo: r.Modulo || r.modulo || r.INDICADOR || 'Atención y Servicio',
+            sucursal: r.Sucursal || r.sucursal || r.SUCURSAL || 'General',
+            mes: r.Mes || r.mes || r.MES || '01. ENERO',
+            valor: String(r.Valor || r.valor || r.VALOR || '0')
+          };
+        });
 
-        const { error } = await _supabase.from('registros').insert(dataToInsert);
+        const res = await _supabase.from('registros').insert(dataToInsert);
 
-        if (error) {
-          alert("Error importando Excel: " + error.message);
+        if (res.error) {
+          alert("Error importando Excel: " + res.error.message);
         } else {
-          alert(`¡Éxito! Se cargaron ${dataToInsert.length} filas desde el Excel.`);
+          alert("¡Éxito! Se cargaron " + dataToInsert.length + " filas con mes incluido.");
           cargarDatosSupabase();
         }
       };
       reader.readAsArrayBuffer(file);
     }
 
-    // CARGA Y CONFIGURACIÓN DE GRÁFICAS AMPLIAS
     window.onload = function() {
       aplicarFiltros();
       cargarDatosSupabase();
