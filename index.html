@@ -153,13 +153,13 @@
     .table-custom {
       width: 100%;
       border-collapse: collapse;
-      font-size: 0.82rem;
+      font-size: 0.85rem;
     }
 
     .table-custom th {
       background-color: var(--table-header-bg);
       color: var(--bg-white);
-      padding: 10px 12px;
+      padding: 12px;
       text-align: left;
       font-weight: 700;
       border: 1px solid var(--border-color);
@@ -228,6 +228,20 @@
     .btn-edit { background-color: var(--accent-blue); }
     .btn-delete { background-color: var(--danger-color); }
 
+    .btn-bulk-delete {
+      background-color: var(--danger-color);
+      color: white;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: bold;
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      gap: 6px;
+    }
+
     /* MODAL */
     .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 200; justify-content: center; align-items: center; }
     .modal.active { display: flex; }
@@ -236,12 +250,7 @@
     .form-group label { display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 5px; color: var(--text-dark); }
     .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; }
     
-    .modal-footer {
-      display: flex;
-      gap: 10px;
-      margin-top: 20px;
-    }
-
+    .modal-footer { display: flex; gap: 10px; margin-top: 20px; }
     .btn-submit { flex: 1; padding: 12px; background: var(--accent-blue); color: white; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; }
     .btn-cancel { flex: 1; padding: 12px; background: #94a3b8; color: white; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; }
   </style>
@@ -270,7 +279,7 @@
       <div class="filters-bar">
         <div class="filter-group">
           <label>Filtrar por Mes</label>
-          <select class="filter-select" id="filter-mes" onchange="aplicarFiltros()">
+          <select class="filter-select" id="filter-mes" onchange="cargarDatosSupabase()">
             <option value="TODOS">TODOS LOS MESES</option>
             <option value="01. ENERO">01. ENERO</option>
             <option value="02. FEBRERO">02. FEBRERO</option>
@@ -282,7 +291,7 @@
 
         <div class="filter-group">
           <label>Filtrar por Sucursal</label>
-          <select class="filter-select" id="filter-sucursal" onchange="aplicarFiltros()">
+          <select class="filter-select" id="filter-sucursal" onchange="cargarDatosSupabase()">
             <option value="TODAS">TODAS LAS SUCURSALES</option>
             <option value="CUAUHTEMOC">CUAUHTEMOC</option>
             <option value="JUAN ALDAMA">JUAN ALDAMA</option>
@@ -294,7 +303,7 @@
 
         <div class="filter-group">
           <label>Filtrar por Indicador</label>
-          <select class="filter-select" id="filter-indicador" onchange="aplicarFiltros()">
+          <select class="filter-select" id="filter-indicador" onchange="cargarDatosSupabase()">
             <option value="TODOS">TODOS LOS INDICADORES</option>
             <option value="Atención y Servicio">Atención y Servicio</option>
             <option value="Operación de Sucursales">Operación de Sucursales</option>
@@ -308,19 +317,20 @@
       <!-- SECCIONES -->
       <div id="page-general" class="section-page active">
         <div class="dashboard-header"><h1 class="dashboard-title">Consolidado General de Indicadores</h1></div>
-        <p style="margin-bottom: 15px; font-weight: 500; color: var(--text-muted);">Muestreo integrado por Sucursal, Mes e Indicador:</p>
+        <p style="margin-bottom: 15px; font-weight: 500; color: var(--text-muted);">Resumen General Promediado/Acumulado por Indicador:</p>
         <div class="table-responsive">
           <table class="table-custom">
             <thead>
               <tr>
-                <th>SUCURSAL</th>
-                <th>MES</th>
                 <th>INDICADOR</th>
-                <th>RESULTADO / MONTO</th>
-                <th>ESTATUS</th>
+                <th>CANT. REGISTROS</th>
+                <th>RESULTADO PROMEDIO / TOTAL</th>
+                <th>ESTATUS GENERAL</th>
               </tr>
             </thead>
-            <tbody id="tabla-general-consolidada"></tbody>
+            <tbody id="tabla-general-consolidada">
+              <tr><td colspan="4">Cargando acumulados de Supabase...</td></tr>
+            </tbody>
           </table>
         </div>
         <h3 style="margin-top: 25px; font-size: 1.1rem; color: var(--accent-blue);">Comparativo Consolidado Global</h3>
@@ -356,23 +366,27 @@
         <div class="dashboard-header"><h1 class="dashboard-title">Inventarios 2026</h1></div>
       </div>
 
-      <!-- HISTÓRICO DE SUPABASE -->
+      <!-- HISTÓRICO DE SUPABASE CON SELECCIÓN MÚLTIPLE -->
       <div style="margin-top: 40px; border-top: 2px solid var(--border-color); padding-top: 20px;">
-        <h3 style="color: var(--text-dark); margin-bottom: 12px; font-size: 1rem;">Histórico de Capturas (Sincronizado con Supabase)</h3>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <h3 style="color: var(--text-dark); font-size: 1rem;">Histórico de Capturas (Sincronizado con Supabase)</h3>
+          <button class="btn-bulk-delete" id="btn-eliminar-varios" onclick="eliminarSeleccionados()"><i class="fa-solid fa-trash"></i> Eliminar Seleccionados (<span id="count-selected">0</span>)</button>
+        </div>
         <div class="table-responsive">
           <table class="table-custom">
             <thead>
               <tr>
+                <th style="width: 40px; text-align: center;"><input type="checkbox" id="check-all" onchange="toggleSelectAll(this)"></th>
                 <th>Fecha Registro</th>
                 <th>Módulo / Indicador</th>
                 <th>Sucursal</th>
                 <th>Mes</th>
                 <th>Valor Capturado</th>
-                <th style="width: 140px;">Acciones</th>
+                <th style="width: 120px;">Acciones</th>
               </tr>
             </thead>
             <tbody id="tabla-supabase-historico">
-              <tr><td colspan="6">Cargando registros...</td></tr>
+              <tr><td colspan="7">Cargando registros...</td></tr>
             </tbody>
           </table>
         </div>
@@ -389,7 +403,7 @@
 
   <input type="file" id="input-excel-file" accept=".xlsx, .xls" style="display: none;" onchange="procesarExcel(event)">
 
-  <!-- MODAL -->
+  <!-- MODAL DE CAPTURA / EDICIÓN -->
   <div class="modal" id="modal-captura">
     <div class="modal-content">
       <h3 style="margin-bottom: 20px; color: var(--accent-blue);" id="modal-titulo">Nuevo Registro de Indicador</h3>
@@ -432,15 +446,6 @@
   </div>
 
   <script>
-    const baseDatosConsolidada = [
-      { sucursal: 'CUAUHTEMOC', mes: '01. ENERO', indicador: 'Operación de Sucursales', valor: '93.25 %', estatus: 'Excelente' },
-      { sucursal: 'CUAUHTEMOC', mes: '02. FEBRERO', indicador: 'Atención y Servicio', valor: '73.25 %', estatus: 'Regular' },
-      { sucursal: 'JUAN ALDAMA', mes: '01. ENERO', indicador: 'Operación de Sucursales', valor: '93.25 %', estatus: 'Excelente' },
-      { sucursal: 'JALPA', mes: '03. MARZO', indicador: 'Vencidos', valor: '$55,244.43', estatus: 'Crítico' },
-      { sucursal: 'LA PANADERA', mes: '04. ABRIL', indicador: 'Merma', valor: '$17,042.02', estatus: 'Atención' },
-      { sucursal: 'OCAMPO', mes: '05. MAYO', indicador: 'CCTV y Alarmas', valor: '98.50 %', estatus: 'Excelente' }
-    ];
-
     const SUPABASE_URL = "https://oussvhvomwrndtufzfih.supabase.co";
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im91c3N2aHZvbXdybmR0dWZ6ZmloIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY3MzAwMjcsImV4cCI6MjEwMjMwNjAyN30.2zF0BgBxuz7xr_lSVlcB6eGAZqn6_e_0cL7zBJqCaqc";
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -475,36 +480,152 @@
       document.getElementById('modal-captura').classList.remove('active');
     }
 
-    function aplicarFiltros() {
+    // CARGAR DATOS DESDE SUPABASE Y GENERAR RESUMEN POR INDICADOR
+    async function cargarDatosSupabase() {
+      const res = await _supabase.from('registros').select('*').order('created_at', { ascending: false });
+      const tbody = document.getElementById('tabla-supabase-historico');
+      
+      if (res.error) { 
+        tbody.innerHTML = '<tr><td colspan="7" style="color:red;">Error de conexión: ' + res.error.message + '</td></tr>'; 
+        return; 
+      }
+
+      let data = res.data || [];
+
+      // Aplicar Filtros
       const fMes = document.getElementById('filter-mes').value;
       const fSuc = document.getElementById('filter-sucursal').value;
       const fInd = document.getElementById('filter-indicador').value;
 
-      const filtrados = baseDatosConsolidada.filter(function(item) {
-        const matchMes = (fMes === 'TODOS' || item.mes === fMes);
-        const matchSuc = (fSuc === 'TODAS' || item.sucursal === fSuc);
-        const matchInd = (fInd === 'TODOS' || item.indicador === fInd);
+      data = data.filter(function(r) {
+        const matchMes = (fMes === 'TODOS' || r.mes === fMes);
+        const matchSuc = (fSuc === 'TODAS' || (r.sucursal && r.sucursal.toUpperCase() === fSuc));
+        const matchInd = (fInd === 'TODOS' || (r.modulo && r.modulo === fInd));
         return matchMes && matchSuc && matchInd;
       });
 
-      renderTablaConsolidada(filtrados);
+      datosHistoricosGlobal = data;
+
+      // 1. RENDERIZAR HISTÓRICO
+      if (data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">No hay registros cargados.</td></tr>';
+      } else {
+        tbody.innerHTML = data.map(function(r, index) {
+          return '<tr>' +
+            '<td style="text-align:center;"><input type="checkbox" class="row-check" value="' + r.id + '" onchange="actualizarContadorSeleccionados()"></td>' +
+            '<td>' + new Date(r.created_at).toLocaleDateString() + '</td>' +
+            '<td>' + (r.modulo || 'Atención y Servicio') + '</td>' +
+            '<td><b>' + (r.sucursal || 'General') + '</b></td>' +
+            '<td>' + (r.mes || '01. ENERO') + '</td>' +
+            '<td><b>' + (r.valor || '0') + '</b></td>' +
+            '<td>' +
+              '<button class="btn-action-table btn-edit" onclick="prepararEdicion(' + index + ')"><i class="fa-solid fa-pen"></i></button>' +
+              '<button class="btn-action-table btn-delete" onclick="eliminarRegistro(' + r.id + ')"><i class="fa-solid fa-trash"></i></button>' +
+            '</td>' +
+          '</tr>';
+        }).join('');
+      }
+
+      document.getElementById('check-all').checked = false;
+      actualizarContadorSeleccionados();
+
+      // 2. CALCULAR Y RENDERIZAR CONSOLIDADO POR INDICADOR
+      generarConsolidadoPorIndicador(data);
     }
 
-    function renderTablaConsolidada(datos) {
-      const tbody = document.getElementById('tabla-general-consolidada');
-      if (datos.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No hay coincidencias.</td></tr>';
+    // PROCESAR VALORES Y MOSTRAR PROMEDIOS / TOTALES POR INDICADOR
+    function generarConsolidadoPorIndicador(data) {
+      const grupos = {};
+
+      data.forEach(function(r) {
+        const ind = r.modulo || 'Otros';
+        if (!grupos[ind]) {
+          grupos[ind] = { suma: 0, conteo: 0, esMoneda: false };
+        }
+
+        let numStr = String(r.valor || '0').replace(/[^0-9.-]+/g, "");
+        let valNum = parseFloat(numStr) || 0;
+
+        if (String(r.valor).includes('$')) {
+          grupos[ind].esMoneda = true;
+        }
+
+        grupos[ind].suma += valNum;
+        grupos[ind].conteo += 1;
+      });
+
+      const tbodyConsolidado = document.getElementById('tabla-general-consolidada');
+      const keys = Object.keys(grupos);
+
+      if (keys.length === 0) {
+        tbodyConsolidado.innerHTML = '<tr><td colspan="4" style="text-align:center;">No hay datos para promediar.</td></tr>';
         return;
       }
-      tbody.innerHTML = datos.map(function(row) {
+
+      tbodyConsolidado.innerHTML = keys.map(function(ind) {
+        const g = grupos[ind];
+        let resultadoFormateado = '';
+        let estatus = 'Bueno';
+        let colorEstatus = '#10b981';
+
+        if (g.esMoneda || ind.toLowerCase().includes('vencidos') || ind.toLowerCase().includes('merma')) {
+          // Es Dinero -> Mostrar Suma Total
+          resultadoFormateado = '$ ' + g.suma.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+          if (g.suma > 50000) { estatus = 'Atención Requerida'; colorEstatus = '#ef4444'; }
+        } else {
+          // Es Porcentaje -> Mostrar Promedio
+          let promedio = (g.suma / g.conteo).toFixed(2);
+          resultadoFormateado = promedio + ' %';
+          if (promedio < 70) { estatus = 'Crítico'; colorEstatus = '#ef4444'; }
+          else if (promedio >= 90) { estatus = 'Excelente'; colorEstatus = '#10b981'; }
+          else { estatus = 'Regular'; colorEstatus = '#f59e0b'; }
+        }
+
         return '<tr>' +
-          '<td><b>' + row.sucursal + '</b></td>' +
-          '<td>' + row.mes + '</td>' +
-          '<td>' + row.indicador + '</td>' +
-          '<td><b>' + row.valor + '</b></td>' +
-          '<td><span style="color: ' + (row.estatus === 'Crítico' ? '#ef4444' : '#0284c7') + '; font-weight:bold;">' + row.estatus + '</span></td>' +
+          '<td><b>' + ind + '</b></td>' +
+          '<td>' + g.conteo + ' registros</td>' +
+          '<td><b style="font-size:1rem; color:var(--accent-blue);">' + resultadoFormateado + '</b></td>' +
+          '<td><span style="color:' + colorEstatus + '; font-weight:bold;">' + estatus + '</span></td>' +
         '</tr>';
       }).join('');
+    }
+
+    // SELECCIÓN MÚLTIPLE Y ELIMINACIÓN MASIVA
+    function toggleSelectAll(source) {
+      const checkboxes = document.querySelectorAll('.row-check');
+      checkboxes.forEach(function(cb) { cb.checked = source.checked; });
+      actualizarContadorSeleccionados();
+    }
+
+    function actualizarContadorSeleccionados() {
+      const selected = document.querySelectorAll('.row-check:checked');
+      const countBtn = document.getElementById('btn-eliminar-varios');
+      const countText = document.getElementById('count-selected');
+
+      countText.innerText = selected.length;
+      if (selected.length > 0) {
+        countBtn.style.display = 'inline-flex';
+      } else {
+        countBtn.style.display = 'none';
+      }
+    }
+
+    async function eliminarSeleccionados() {
+      const selectedBoxes = document.querySelectorAll('.row-check:checked');
+      const idsToDelete = Array.from(selectedBoxes).map(cb => cb.value);
+
+      if (idsToDelete.length === 0) return;
+
+      if (confirm('¿Estás seguro de que deseas eliminar ' + idsToDelete.length + ' registros seleccionados?')) {
+        const res = await _supabase.from('registros').delete().in('id', idsToDelete);
+        
+        if (res.error) {
+          alert("Error al eliminar los elementos: " + res.error.message);
+        } else {
+          alert("¡" + idsToDelete.length + " registros eliminados con éxito!");
+          cargarDatosSupabase();
+        }
+      }
     }
 
     async function guardarEnSupabase(e) {
@@ -533,29 +654,6 @@
         if (res.error) { alert("Error al eliminar: " + res.error.message); }
         else { cargarDatosSupabase(); }
       }
-    }
-
-    async function cargarDatosSupabase() {
-      const res = await _supabase.from('registros').select('*').order('created_at', { ascending: false });
-      const tbody = document.getElementById('tabla-supabase-historico');
-      
-      if (res.error) { tbody.innerHTML = '<tr><td colspan="6" style="color:red;">Error de API Key o conexión: ' + res.error.message + '</td></tr>'; return; }
-      if (!res.data || res.data.length === 0) { tbody.innerHTML = '<tr><td colspan="6">No hay capturas registradas aún.</td></tr>'; return; }
-
-      datosHistoricosGlobal = res.data;
-      tbody.innerHTML = res.data.map(function(r, index) {
-        return '<tr>' +
-          '<td>' + new Date(r.created_at).toLocaleDateString() + '</td>' +
-          '<td>' + (r.modulo || 'Atención y Servicio') + '</td>' +
-          '<td><b>' + (r.sucursal || 'General') + '</b></td>' +
-          '<td>' + (r.mes || '01. ENERO') + '</td>' +
-          '<td><b>' + (r.valor || '') + '</b></td>' +
-          '<td>' +
-            '<button class="btn-action-table btn-edit" onclick="prepararEdicion(' + index + ')"><i class="fa-solid fa-pen"></i></button>' +
-            '<button class="btn-action-table btn-delete" onclick="eliminarRegistro(' + r.id + ')"><i class="fa-solid fa-trash"></i></button>' +
-          '</td>' +
-        '</tr>';
-      }).join('');
     }
 
     function prepararEdicion(index) {
@@ -595,7 +693,7 @@
         if (res.error) {
           alert("Error importando Excel: " + res.error.message);
         } else {
-          alert("¡Éxito! Se cargaron " + dataToInsert.length + " filas con mes incluido.");
+          alert("¡Éxito! Se cargaron " + dataToInsert.length + " filas.");
           cargarDatosSupabase();
         }
       };
@@ -603,7 +701,6 @@
     }
 
     window.onload = function() {
-      aplicarFiltros();
       cargarDatosSupabase();
 
       const optionsLarge = {
