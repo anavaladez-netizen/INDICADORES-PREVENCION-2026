@@ -292,41 +292,26 @@
   <main class="main-wrapper">
     <div class="dashboard-container">
 
-      <!-- FILTROS -->
+      <!-- FILTROS DINÁMICOS -->
       <div class="filters-bar">
         <div class="filter-group">
           <label>Filtrar por Mes</label>
-          <select class="filter-select" id="filter-mes" onchange="cargarDatosSupabase()">
+          <select class="filter-select" id="filter-mes" onchange="aplicarFiltros()">
             <option value="TODOS">TODOS LOS MESES</option>
-            <option value="01. ENERO">01. ENERO</option>
-            <option value="02. FEBRERO">02. FEBRERO</option>
-            <option value="03. MARZO">03. MARZO</option>
-            <option value="04. ABRIL">04. ABRIL</option>
-            <option value="05. MAYO">05. MAYO</option>
           </select>
         </div>
 
         <div class="filter-group">
           <label>Filtrar por Sucursal</label>
-          <select class="filter-select" id="filter-sucursal" onchange="cargarDatosSupabase()">
+          <select class="filter-select" id="filter-sucursal" onchange="aplicarFiltros()">
             <option value="TODAS">TODAS LAS SUCURSALES</option>
-            <option value="CUAUHTEMOC">CUAUHTEMOC</option>
-            <option value="JUAN ALDAMA">JUAN ALDAMA</option>
-            <option value="OCAMPO">OCAMPO</option>
-            <option value="JALPA">JALPA</option>
-            <option value="LA PANADERA">LA PANADERA</option>
           </select>
         </div>
 
         <div class="filter-group">
           <label>Filtrar por Indicador</label>
-          <select class="filter-select" id="filter-indicador" onchange="cargarDatosSupabase()">
+          <select class="filter-select" id="filter-indicador" onchange="aplicarFiltros()">
             <option value="TODOS">TODOS LOS INDICADORES</option>
-            <option value="Atención y Servicio">Atención y Servicio</option>
-            <option value="Operación de Sucursales">Operación de Sucursales</option>
-            <option value="Vencidos">Vencidos ($)</option>
-            <option value="Merma">Merma ($)</option>
-            <option value="CCTV y Alarmas">CCTV y Alarmas (%)</option>
           </select>
         </div>
       </div>
@@ -492,7 +477,7 @@
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im91c3N2aHZvbXdybmR0dWZ6ZmloIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY3MzAwMjcsImV4cCI6MjEwMjMwNjAyN30.2zF0BgBxuz7xr_lSVlcB6eGAZqn6_e_0cL7zBJqCaqc";
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    let datosHistoricosGlobal = [];
+    let datosOriginalesSupabase = [];
 
     function switchTab(pageId, element) {
       document.querySelectorAll('.section-page').forEach(function(p) { p.classList.remove('active'); });
@@ -522,37 +507,81 @@
       document.getElementById('modal-captura').classList.remove('active');
     }
 
-    // CARGAR DATOS DESDE SUPABASE Y GENERAR RESUMEN
+    // CARGAR DATOS DESDE SUPABASE Y POBLAR FILTROS AUTOMÁTICAMENTE
     async function cargarDatosSupabase() {
       const res = await _supabase.from('registros').select('*').order('created_at', { ascending: false });
-      const tbody = document.getElementById('tabla-supabase-historico');
       
       if (res.error) { 
-        tbody.innerHTML = '<tr><td colspan="7" style="color:red;">Error de conexión: ' + res.error.message + '</td></tr>'; 
+        document.getElementById('tabla-supabase-historico').innerHTML = '<tr><td colspan="7" style="color:red;">Error de conexión: ' + res.error.message + '</td></tr>'; 
         return; 
       }
 
-      let data = res.data || [];
+      datosOriginalesSupabase = res.data || [];
 
-      // Aplicar Filtros
+      poblarOpcionesFiltros(datosOriginalesSupabase);
+      aplicarFiltros();
+    }
+
+    // POBLAR OPCIONES DE FILTROS BASADO EN LOS DATOS EXISTENTES
+    function poblarOpcionesFiltros(data) {
+      const selectMes = document.getElementById('filter-mes');
+      const selectSuc = document.getElementById('filter-sucursal');
+      const selectInd = document.getElementById('filter-indicador');
+
+      const valMesAct = selectMes.value;
+      const valSucAct = selectSuc.value;
+      const valIndAct = selectInd.value;
+
+      const mesesUnicos = new Set();
+      const sucursalesUnicas = new Set();
+      const indicadoresUnicos = new Set();
+
+      data.forEach(r => {
+        if (r.mes) mesesUnicos.add(r.mes.trim());
+        if (r.sucursal) sucursalesUnicas.add(r.sucursal.trim().toUpperCase());
+        if (r.modulo) indicadoresUnicos.add(r.modulo.trim());
+      });
+
+      selectMes.innerHTML = '<option value="TODOS">TODOS LOS MESES</option>' + 
+        Array.from(mesesUnicos).sort().map(m => `<option value="${m}">${m}</option>`).join('');
+
+      selectSuc.innerHTML = '<option value="TODAS">TODAS LAS SUCURSALES</option>' + 
+        Array.from(sucursalesUnicas).sort().map(s => `<option value="${s}">${s}</option>`).join('');
+
+      selectInd.innerHTML = '<option value="TODOS">TODOS LOS INDICADORES</option>' + 
+        Array.from(indicadoresUnicos).sort().map(i => `<option value="${i}">${i}</option>`).join('');
+
+      if (Array.from(selectMes.options).some(o => o.value === valMesAct)) selectMes.value = valMesAct;
+      if (Array.from(selectSuc.options).some(o => o.value === valSucAct)) selectSuc.value = valSucAct;
+      if (Array.from(selectInd.options).some(o => o.value === valIndAct)) selectInd.value = valIndAct;
+    }
+
+    // APLICAR FILTROS Y RECALCULAR
+    function aplicarFiltros() {
       const fMes = document.getElementById('filter-mes').value;
       const fSuc = document.getElementById('filter-sucursal').value;
       const fInd = document.getElementById('filter-indicador').value;
 
-      data = data.filter(function(r) {
-        const matchMes = (fMes === 'TODOS' || r.mes === fMes);
-        const matchSuc = (fSuc === 'TODAS' || (r.sucursal && r.sucursal.toUpperCase() === fSuc));
-        const matchInd = (fInd === 'TODOS' || (r.modulo && r.modulo === fInd));
+      const dataFiltrada = datosOriginalesSupabase.filter(function(r) {
+        const matchMes = (fMes === 'TODOS' || (r.mes && r.mes.trim() === fMes));
+        const matchSuc = (fSuc === 'TODAS' || (r.sucursal && r.sucursal.trim().toUpperCase() === fSuc));
+        const matchInd = (fInd === 'TODOS' || (r.modulo && r.modulo.trim() === fInd));
         return matchMes && matchSuc && matchInd;
       });
 
-      datosHistoricosGlobal = data;
+      renderizarTablaHistorico(dataFiltrada);
+      generarConsolidadoPorIndicador(dataFiltrada);
+    }
 
-      // 1. RENDERIZAR HISTÓRICO
+    // RENDERIZAR TABLA DE HISTÓRICO
+    function renderizarTablaHistorico(data) {
+      const tbody = document.getElementById('tabla-supabase-historico');
+      
       if (data.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">No hay registros cargados.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">No hay registros que coincidan con los filtros.</td></tr>';
       } else {
-        tbody.innerHTML = data.map(function(r, index) {
+        tbody.innerHTML = data.map(function(r) {
+          const indexOrig = datosOriginalesSupabase.findIndex(d => d.id === r.id);
           return '<tr>' +
             '<td style="text-align:center;"><input type="checkbox" class="row-check" value="' + r.id + '" data-valor="' + (r.valor || '') + '" onchange="actualizarContadorSeleccionados()"></td>' +
             '<td>' + new Date(r.created_at).toLocaleDateString() + '</td>' +
@@ -561,7 +590,7 @@
             '<td>' + (r.mes || '01. ENERO') + '</td>' +
             '<td><b>' + (r.valor || '0') + '</b></td>' +
             '<td>' +
-              '<button class="btn-action-table btn-edit" onclick="prepararEdicion(' + index + ')"><i class="fa-solid fa-pen"></i></button>' +
+              '<button class="btn-action-table btn-edit" onclick="prepararEdicion(' + indexOrig + ')"><i class="fa-solid fa-pen"></i></button>' +
               '<button class="btn-action-table btn-delete" onclick="eliminarRegistro(' + r.id + ')"><i class="fa-solid fa-trash"></i></button>' +
             '</td>' +
           '</tr>';
@@ -570,9 +599,6 @@
 
       document.getElementById('check-all').checked = false;
       actualizarContadorSeleccionados();
-
-      // 2. CALCULAR CONSOLIDADO
-      generarConsolidadoPorIndicador(data);
     }
 
     // PROCESAR VALORES Y MOSTRAR PROMEDIOS / TOTALES
@@ -600,7 +626,7 @@
       const keys = Object.keys(grupos);
 
       if (keys.length === 0) {
-        tbodyConsolidado.innerHTML = '<tr><td colspan="4" style="text-align:center;">No hay datos para promediar.</td></tr>';
+        tbodyConsolidado.innerHTML = '<tr><td colspan="4" style="text-align:center;">No hay datos para calcular con este filtro.</td></tr>';
         return;
       }
 
@@ -737,7 +763,7 @@
     }
 
     function prepararEdicion(index) {
-      const item = datosHistoricosGlobal[index];
+      const item = datosOriginalesSupabase[index];
       abrirModal(item);
     }
 
